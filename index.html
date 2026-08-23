@@ -1,15 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>&nbsp;</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSH Innovations — Jaggars Software Holdings LLC</title>
   <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { margin:0; min-height:100vh; background:#111b38; display:flex; align-items:center; justify-content:center; }
-    svg { width:72px; height:72px; opacity:.9; }
+    :root {
+      --navy: #111b38; --navy-2: #162144; --ink: #f3f2f2; --ink-soft: #aab1c9;
+      --line: #2a3560; --red: #ec3013;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      background: var(--navy); color: var(--ink);
+      font-family: 'Instrument Sans', system-ui, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 56px 24px 40px;
+    }
+    main { width: 100%; max-width: 620px; }
+    .mark { width: 64px; height: 64px; display: block; margin-bottom: 36px; }
+    .eyebrow {
+      font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--ink-soft); font-weight: 600; margin-bottom: 14px;
+    }
+    h1 {
+      font-family: 'Instrument Serif', serif; font-weight: 400;
+      font-size: clamp(30px, 5.5vw, 42px); line-height: 1.14; margin-bottom: 14px;
+    }
+    h1 em { font-style: italic; color: var(--ink); }
+    .lede { color: var(--ink-soft); font-size: 16px; line-height: 1.55; max-width: 50ch; }
+    .products { margin-top: 44px; border-top: 1px solid var(--line); }
+    .product {
+      display: grid; grid-template-columns: 26px 1fr auto; gap: 14px; align-items: baseline;
+      padding: 18px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit;
+    }
+    .sq { width: 12px; height: 12px; background: var(--ink); align-self: center; }
+    .sq.live { background: var(--red); }
+    .p-name { font-weight: 600; font-size: 17px; }
+    .p-name span { display: block; font-weight: 400; font-size: 14px; color: var(--ink-soft); margin-top: 3px; line-height: 1.45; }
+    .p-status { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+    .p-status.live { color: var(--red); font-weight: 600; }
+    a.product:hover .p-name { text-decoration: underline; text-underline-offset: 3px; }
+    footer {
+      width: 100%; max-width: 620px; margin-top: 56px; padding-top: 18px;
+      font-size: 13px; line-height: 1.7; color: var(--ink-soft);
+    }
+    footer b { color: var(--ink); font-weight: 600; }
+    footer a { color: var(--ink-soft); }
+    @media (prefers-reduced-motion: no-preference) {
+      main, footer { animation: rise .5s ease both; }
+      @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    }
   </style>
 </head>
 <body>
-  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="30" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="44" y="44" width="12" height="12" fill="#ec3013"/><rect x="30" y="58" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="58" width="12" height="12" fill="#f3f2f2"/></svg>
+  <main>
+    <svg class="mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JSH mark"><rect x="30" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="44" y="44" width="12" height="12" fill="#ec3013"/><rect x="30" y="58" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="58" width="12" height="12" fill="#f3f2f2"/></svg>
+    <div class="eyebrow">Jaggars Software Holdings LLC</div>
+    <h1>Software products, built <em>whole.</em></h1>
+    <p class="lede">JSH Innovations is the product studio of Jaggars Software Holdings LLC. We design, build, and operate our own AI&#8209;first software platforms.</p>
+
+    <div class="products">
+      <a class="product" href="https://myrealtyvault.com">
+        <span class="sq live"></span>
+        <span class="p-name">MyRealtyVault<span>A complete CRM and marketing platform built for real estate agents.</span></span>
+        <span class="p-status live">Live</span>
+      </a>
+      <a class="product" href="https://myideavault.app">
+        <span class="sq live"></span>
+        <span class="p-name">MyIdeaVault<span>Turn an idea on a napkin into a working app prototype with AI.</span></span>
+        <span class="p-status live">Live</span>
+      </a>
+      <div class="product">
+        <span class="sq"></span>
+        <span class="p-name">MyBuilderVault<span>Construction management for mid&#8209;market home builders.</span></span>
+        <span class="p-status">In development</span>
+      </div>
+      <div class="product">
+        <span class="sq"></span>
+        <span class="p-name">MaxU<span>Employee communication&#8209;fit and development platform.</span></span>
+        <span class="p-status">In development</span>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <b>Jaggars Software Holdings LLC</b> &middot; d/b/a JSH Innovations<br>
+    7901 4th St N Ste 300, Saint Petersburg, FL 33702&#8209;4399, United States<br>
+    <a href="mailto:brice@jshinnovations.com">brice@jshinnovations.com</a>
+  </footer>
 </body>
 </html>
