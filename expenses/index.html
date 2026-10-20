@@ -516,7 +516,7 @@ function viewInbox() {
   const review = S.expenses.filter((e) => e.status === "review").sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
   const reading = S.receipts.filter((r) => r.status === "pending" || r.status === "processing");
   const failed = S.receipts.filter((r) => r.status === "error");
-  let h = `<div class="page-head"><div><h2>Inbox</h2><p>${review.length ? `${review.length} to confirm. Check the amount and category, then file.` : "Nothing waiting. New receipts land here when the reader isn't sure."}</p></div>
+  let h = `<div class="page-head"><div><h2>Inbox</h2><p>${review.length ? `${review.length} need a look: possible duplicates, personal charges, unreadable amounts or new senders.` : "Nothing waiting. Receipts file themselves; only problems land here."}</p></div>
     <button class="btn primary" data-go="capture">${IC.camera} Add receipt</button></div>`;
   if (reading.length) h += `<div class="card pad row" style="margin-bottom:12px"><div class="spin"></div><div><b>Reading ${reading.length} receipt${reading.length > 1 ? "s" : ""}…</b><div class="small muted">They'll appear below or file themselves when done.</div></div></div>`;
   if (failed.length) h += `<div class="section-title"><h3>Couldn't read</h3></div><div class="card">${failed.map((r) => `
@@ -864,6 +864,7 @@ function viewReports() {
     <div class="card kpi"><div class="l">Miles</div><div class="v num">${Math.round(mileN).toLocaleString()}</div><div class="s">${miles.length} trips</div></div>
     <div class="card kpi"><div class="l">Gaps</div><div class="v num">${noRec + unmatched}</div><div class="s">${noRec} no receipt · ${unmatched} card charges unmatched</div></div>
   </div>
+  ${mealsNeedingPurpose()}
   <div class="card pad" style="margin-top:12px">
     <div class="row between wrap"><h3>${S.year} by month</h3><div class="seg"><button class="${p === "year" ? "on" : ""}" data-rp="year">Full year</button>${[1, 2, 3, 4].map((q) => `<button class="${p === "Q" + q ? "on" : ""}" data-rp="Q${q}">Q${q}</button>`).join("")}</div></div>
     <div class="chart">${byM.map((v, i) => { const on = p === "M" + (i + 1); const inP = p === "year" || on || (p[0] === "Q" && Math.floor(i / 3) + 1 === +p[1]); return `<div class="col ${on ? "on" : ""} ${inP ? "" : "dim"}" data-rp="M${i + 1}" title="${MONTHS[i]}: ${money(v)}"><span class="v num">${v ? money(v, false) : ""}</span><div class="b" style="height:${(v / maxM) * 100}%"></div></div>`; }).join("")}</div>
@@ -883,6 +884,11 @@ function viewReports() {
   <div class="card">${rec.list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vendor</th><th class="r">Typical</th><th>${rec.months.map((m) => MONTHS[+m.slice(5) - 1]).join(" · ")}</th><th></th></tr></thead><tbody>
     ${rec.list.map((r) => `<tr class="click" data-drill='${esc(JSON.stringify({ vendor: r.k }))}'><td><b>${esc(r.vendor)}</b></td><td class="r num">${money(r.typical)}</td><td><div class="recur-dots">${r.months.map((x) => `<i class="${x}"></i>`).join("")}</div></td><td>${r.gaps.length ? `<span class="chip bad">${r.gaps.length} missing</span>` : !r.thisMonth ? `<span class="chip">due this month</span>` : `<span class="chip ok">complete</span>`}</td></tr>`).join("")}
   </tbody></table></div>` : `<div class="empty">Recurring bills show up here once a vendor has appeared in 3 of the last 5 months.</div>`}</div>`;
+}
+function mealsNeedingPurpose() {
+  const list = S.expenses.filter((e) => e.status === "filed" && e.date && yOf(e.date) === S.year && /meal/i.test(catById(e.category_id)?.name || "") && !(e.business_purpose || "").trim());
+  if (!list.length) return "";
+  return `<div class="card" style="margin-top:12px;border-color:var(--warn)"><div class="pad row between wrap" style="border-bottom:1px solid var(--line)"><div><h3>Meals need a business purpose</h3><div class="small muted">The IRS expects who you met and why. Tap one to add it.</div></div><span class="chip warn">${list.length}</span></div>${list.slice(0, 8).map((e) => `<div class="e-row" data-act="edit" data-id="${e.id}" style="display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer"><span class="num small muted" style="width:90px">${fmtDate(e.date)}</span><b style="flex:1">${esc(e.vendor || "")}</b><span class="num">${money(e.total)}</span></div>`).join("")}</div>`;
 }
 function estimatedBlock(byQ) {
   const due = [["Q1", `Apr 15, ${S.year}`], ["Q2", `Jun 15, ${S.year}`], ["Q3", `Sep 15, ${S.year}`], ["Q4", `Jan 15, ${S.year + 1}`]];
