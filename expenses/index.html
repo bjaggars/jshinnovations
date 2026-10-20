@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="/expenses/">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JSH Expenses</title>
+<meta name="description" content="Receipt capture and expense reporting for Jaggars Software Holdings">
+<meta name="theme-color" content="#0f3d3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Expenses">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --surface-2:#f0f2ef; --line:#e2e5e0; --line-2:#d3d7d1;
+  --ink:#16201d; --ink-2:#4a5652; --ink-3:#7c8783;
+  --brand:#0f3d3a; --accent:#0d8a6a; --accent-ink:#ffffff; --accent-soft:#e3f3ed;
+  --warn:#b45309; --warn-soft:#fdf1e2; --bad:#b42318; --bad-soft:#fdecea; --info:#2557c7; --info-soft:#e8eefc;
+  --shadow:0 1px 2px rgba(16,24,20,.06),0 4px 16px rgba(16,24,20,.06);
+  --r:14px; --r-sm:10px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1311; --surface:#161c1a; --surface-2:#1d2421; --line:#28302d; --line-2:#36403c;
+    --ink:#e9eeec; --ink-2:#b2bdb8; --ink-3:#83908b;
+    --brand:#9fe0cb; --accent:#25b48c; --accent-ink:#04140f; --accent-soft:#143229;
+    --warn:#f0a54a; --warn-soft:#33240f; --bad:#ff7b6e; --bad-soft:#3a1714; --info:#8fb0ff; --info-soft:#18233d;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1311; --surface:#161c1a; --surface-2:#1d2421; --line:#28302d; --line-2:#36403c;
+  --ink:#e9eeec; --ink-2:#b2bdb8; --ink-3:#83908b;
+  --brand:#9fe0cb; --accent:#25b48c; --accent-ink:#04140f; --accent-soft:#143229;
+  --warn:#f0a54a; --warn-soft:#33240f; --bad:#ff7b6e; --bad-soft:#3a1714; --info:#8fb0ff; --info-soft:#18233d;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--font);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;line-height:1.2}
+h2{font-size:20px;letter-spacing:-.01em}
+h3{font-size:15px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-3)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.hide{display:none!important}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em}
+.logo-mark{width:30px;height:30px;border-radius:8px;background:var(--brand);display:grid;place-items:center}
+:root[data-theme="dark"] .logo-mark{background:#0f3d3a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .logo-mark{background:#0f3d3a}}
+.logo small{display:block;font-weight:500;color:var(--ink-3);font-size:11px;letter-spacing:.02em;text-transform:uppercase}
+.top .spacer{flex:1}
+.year-sel{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600}
+
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.nav button{flex:1;max-width:120px;background:none;border:0;padding:6px 2px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--ink-3);cursor:pointer;position:relative}
+.nav button svg{width:24px;height:24px}
+.nav button.on{color:var(--accent)}
+.nav .badge{position:absolute;top:0;right:calc(50% - 22px);background:var(--bad);color:#fff;font-size:10px;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
+.nav .cap{color:var(--ink-3)}
+.nav .cap.on{color:var(--accent)}
+.nav .cap .capdot{color:#fff;width:46px;height:46px;border-radius:50%;background:var(--accent);display:grid;place-items:center;margin-top:-20px;box-shadow:var(--shadow);border:4px solid var(--surface)}
+@media (min-width:900px){
+  body{padding-bottom:0;padding-left:220px}
+  .nav{top:0;bottom:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-right:1px solid var(--line);padding:84px 12px 12px}
+  .nav button{flex:none;max-width:none;flex-direction:row;gap:12px;font-size:14px;padding:10px 12px;justify-content:flex-start}
+  .nav button.on{background:var(--accent-soft)}
+  .nav .badge{position:static;margin-left:auto}
+  .nav .cap{color:var(--accent)}
+  .nav .cap .capdot{width:24px;height:24px;margin:0;border:0;box-shadow:none}
+  .nav .cap .capdot svg{width:16px;height:16px}
+  .top{padding-left:236px;margin-left:-220px}
+}
+
+main{max-width:1180px;margin:0 auto;padding:18px 16px 40px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.page-head p{margin:4px 0 0;color:var(--ink-3)}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:16px}
+.stack>*+*{margin-top:12px}
+.grid{display:grid;gap:12px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.between{justify-content:space-between}
+.section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px}
+.section-title h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line-2);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600;cursor:pointer;text-decoration:none;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.btn svg{width:18px;height:18px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.chip.ok{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.chip.info{background:var(--info-soft);color:var(--info);border-color:transparent}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:6px 10px;border-radius:7px;font-weight:600;font-size:13px;color:var(--ink-2);cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* forms */
+label.f{display:block}
+label.f>span{display:block;font-size:12px;font-weight:600;color:var(--ink-3);margin-bottom:4px;letter-spacing:.01em}
+.in,select.in,textarea.in{width:100%;border:1px solid var(--line-2);background:var(--surface);border-radius:10px;padding:9px 11px;outline:none;min-height:40px}
+.in:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea.in{min-height:70px;resize:vertical}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fgrid .full{grid-column:1/-1}
+@media (max-width:520px){.fgrid.r3{grid-template-columns:1fr 1fr}}
+.fgrid.r3{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* inbox */
+.inbox-item{display:grid;grid-template-columns:84px 1fr;gap:14px;padding:14px;border-bottom:1px solid var(--line)}
+.inbox-item:last-child{border-bottom:0}
+.thumb{width:84px;height:104px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;cursor:pointer;color:var(--ink-3)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb svg{width:30px;height:30px}
+.ii-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.ii-vendor{font-weight:700;font-size:16px}
+.ii-amt{font-weight:700;font-size:17px}
+.ii-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ii-fields .in{min-height:36px;padding:6px 9px;font-size:14px}
+.ii-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+@media (max-width:520px){.ii-fields{grid-template-columns:1fr}.inbox-item{grid-template-columns:64px 1fr}.thumb{width:64px;height:84px}}
+
+/* capture */
+.cap-hero{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cap-btn{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:18px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);cursor:pointer;text-align:left;min-height:130px}
+.cap-btn.main{background:var(--brand);color:#fff;border-color:transparent}
+:root[data-theme="dark"] .cap-btn.main{background:#0f3d3a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cap-btn.main{background:#0f3d3a}}
+.cap-btn svg{width:30px;height:30px}
+.cap-btn b{font-size:17px}
+.cap-btn span{font-size:13px;opacity:.8}
+.cap-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop{border:2px dashed var(--line-2);border-radius:var(--r);padding:22px;text-align:center;color:var(--ink-3)}
+.drop.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.q-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.q-item:last-child{border-bottom:0}
+.q-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:520px){.q-item{flex-wrap:wrap}.q-item .q-name{flex:1 1 calc(100% - 90px);white-space:normal}}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent);animation:sp .8s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.intake-line{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.intake-line:first-child{border-top:0}
+.intake-ico{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.intake-ico svg{width:20px;height:20px}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:12px;font-weight:600;color:var(--ink-3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;letter-spacing:.02em}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right}
+.tbl tbody tr.click{cursor:pointer}
+.tbl tbody tr.click:hover td{background:var(--surface-2)}
+.tbl tfoot td{font-weight:700;border-top:1px solid var(--line-2);border-bottom:0}
+.tbl-wrap{overflow-x:auto}
+.bar{height:8px;border-radius:4px;background:var(--surface-2);min-width:60px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+/* expense list (mobile) */
+.elist .e-row{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.elist .e-row:last-child{border-bottom:0}
+.e-date{width:42px;text-align:center;flex:none;line-height:1.1}
+.e-date b{display:block;font-size:17px}
+.e-date span{font-size:11px;color:var(--ink-3);text-transform:uppercase;font-weight:600}
+.e-main{flex:1;min-width:0}
+.e-main .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e-main .s{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e-amt{font-weight:700;text-align:right}
+.only-wide{display:none}
+@media (min-width:760px){.only-wide{display:block}.only-narrow{display:none}}
+
+/* reports */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{padding:14px 16px}
+.kpi .l{font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:.02em}
+.kpi .v{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--ink-3);margin-top:2px}
+.chart{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;align-items:end;height:180px;padding:10px 4px 0}
+.chart .col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;cursor:pointer;gap:6px}
+.chart .col .b{width:100%;max-width:38px;background:var(--accent);border-radius:6px 6px 2px 2px;min-height:2px;opacity:.9}
+.chart .col.dim .b{opacity:.25}
+.chart .col.on .b{opacity:1;box-shadow:0 0 0 2px var(--accent-soft)}
+.chart .col .v{font-size:10px;color:var(--ink-3);white-space:nowrap}
+.chart-x{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;padding:6px 4px 0;font-size:11px;color:var(--ink-3);text-align:center;font-weight:600}
+.qrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:10px 4px 0}
+.qrow div{background:var(--surface-2);border-radius:8px;padding:6px 8px;font-size:12px;text-align:center;cursor:pointer}
+.qrow div b{display:block;font-size:14px}
+.qrow div.on{background:var(--accent-soft);color:var(--accent)}
+.recur-dots{display:flex;gap:4px}
+.recur-dots i{width:14px;height:14px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line)}
+.recur-dots i.y{background:var(--accent);border-color:var(--accent)}
+.recur-dots i.n{background:var(--bad-soft);border-color:var(--bad)}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(10,16,14,.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--surface);border-radius:18px;max-width:1040px;width:100%;max-height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal.narrow{max-width:520px}
+.modal-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.modal-head h3{flex:1;font-size:17px}
+.modal-body{overflow:auto;flex:1}
+.modal-foot{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);flex-wrap:wrap;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.ed{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
+.ed-prev{background:var(--surface-2);border-right:1px solid var(--line);min-height:420px;display:flex;flex-direction:column}
+.ed-prev .pv{flex:1;display:grid;place-items:center;overflow:auto;padding:12px}
+.ed-prev img{max-width:100%;border-radius:8px;box-shadow:var(--shadow)}
+.ed-prev iframe{width:100%;height:100%;min-height:520px;border:0;background:#fff;border-radius:8px}
+.ed-form{padding:16px}
+@media (max-width:760px){
+  .modal-bg{padding:0;align-items:stretch}
+  .modal{max-height:none;height:100%;border-radius:0}
+  .ed{grid-template-columns:1fr}
+  .ed-prev{min-height:0;border-right:0;border-bottom:1px solid var(--line)}
+  .ed-prev .pv{max-height:46vh}
+  .ed-prev iframe{min-height:46vh}
+}
+.li-list{font-size:13px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.li-list div{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-bottom:1px solid var(--line)}
+.li-list div:last-child{border-bottom:0}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));z-index:80;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:var(--shadow);max-width:calc(100vw - 32px)}
+@media (min-width:900px){.toast{bottom:24px;margin-left:110px}}
+.empty{padding:38px 20px;text-align:center;color:var(--ink-3)}
+.empty svg{width:40px;height:40px;opacity:.6}
+.empty b{display:block;color:var(--ink);font-size:16px;margin:8px 0 4px}
+.auth{max-width:400px;margin:8vh auto;padding:0 16px}
+.auth .card{padding:24px}
+.code{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;word-break:break-all;user-select:all}
+.more-list button{display:flex;width:100%;align-items:center;gap:14px;padding:14px 16px;background:none;border:0;border-bottom:1px solid var(--line);cursor:pointer;text-align:left}
+.more-list button:last-child{border-bottom:0}
+.more-list svg{width:22px;height:22px;color:var(--accent)}
+.more-list b{display:block}
+.more-list span{font-size:13px;color:var(--ink-3)}
+.filters{display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters .q{grid-column:1/-1}}
+.filters .in{min-height:38px;padding:7px 10px;font-size:14px}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo"><div class="logo-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9fe0cb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg></div><div>JSH Expenses<small id="who"></small></div></div>
+  <div class="spacer"></div>
+  <select class="year-sel hide" id="yearSel" aria-label="Tax year"></select>
+</div></header>
+<nav class="nav hide" id="nav"></nav>
+<main id="main"><div class="empty"><div class="spin" style="margin:40px auto"></div></div></main>
+<div id="modal"></div>
+<div id="toast" class="toast hide"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+"use strict";
+/* ========= config ========= */
+const SB_URL = "https://cfhualtyvccfjxenvkud.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmaHVhbHR5dmNjZmp4ZW52a3VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTk2NjEsImV4cCI6MjEwODA5NTY2MX0.WOnjua0fxslAfkuHz_O8yKndfq86YDH4KLlqjqtdics";
+const API = SB_URL + "/functions/v1/api";
+const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+
+/* ========= tiny helpers ========= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (v) => (v === "" || v == null || isNaN(+v) ? null : Math.round(+v * 100) / 100);
+const money = (n, cents = true) => n == null || isNaN(n) ? "—" : (n < 0 ? "−" : "") + "$" + Math.abs(+n).toLocaleString("en-US", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const todayISO = () => new Date().toLocaleDateString("en-CA");
+const yOf = (d) => d ? +d.slice(0, 4) : null;
+const mOf = (d) => d ? +d.slice(5, 7) : null;
+const qOf = (d) => d ? Math.floor((mOf(d) - 1) / 3) + 1 : null;
+const fmtDate = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No date";
+const dayDiff = (a, b) => Math.abs((new Date(a + "T12:00:00") - new Date(b + "T12:00:00")) / 864e5);
+const vkey = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+const uuid = () => crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function toast(msg, ms = 2600) { const t = $("#toast"); t.textContent = msg; t.classList.remove("hide"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add("hide"), ms); }
+function loadScript(src) { return new Promise((res, rej) => { if ($(`script[src="${src}"]`)) return res(); const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("Couldn't load " + src)); document.head.appendChild(s); }); }
+const LIBS = { xlsx: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js", zip: "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" };
+
+const IC = {
+  inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
+  list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="5" width="3" height="13" rx="1"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>',
+  upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
+  sms: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>',
+  car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l-1.5-6.5A2 2 0 0 0 15.6 9H8.4a2 2 0 0 0-1.9 1.5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>',
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  dl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>',
+};
+
+/* ========= state ========= */
+const S = {
+  session: null, me: null, owner: false,
+  view: "inbox", year: new Date().getFullYear(),
+  cats: [], prods: [], cards: [], settings: {}, expenses: [], receipts: [], mileage: [], lines: [], imports: [], members: [],
+  queue: [], ef: { q: "", month: "", cat: "", prod: "", vendor: "", card: "", status: "filed" },
+  rp: { period: "year", group: "category" }, urls: new Map(),
+};
+const catById = (id) => S.cats.find((c) => c.id === id);
+const prodById = (id) => S.prods.find((p) => p.id === id);
+const cardById = (id) => S.cards.find((c) => c.id === id);
+const recById = (id) => S.receipts.find((r) => r.id === id);
+const expById = (id) => S.expenses.find((e) => e.id === id);
+function deductible(e) {
+  if (e.total == null) return 0;
+  const c = catById(e.category_id);
+  const cp = c ? +c.deductible_pct : 100;
+  const bp = e.business_pct == null || e.business_pct === "" ? 100 : +e.business_pct;
+  return Math.round(e.total * bp / 100 * cp / 100 * 100) / 100;
+}
+function mileageRate(date) {
+  const rates = (S.settings.mileage_rates || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+  let r = 0; for (const x of rates) if (date >= x.from) r = +x.rate; return r;
+}
+
+/* ========= data ========= */
+async function fetchAll(build) {
+  let out = [], from = 0; const size = 1000;
+  for (;;) { const { data, error } = await build().range(from, from + size - 1); if (error) throw error; out = out.concat(data || []); if (!data || data.length < size) break; from += size; }
+  return out;
+}
+async function loadAll() {
+  const [cats, prods, cards, settings, expenses, receipts, mileage, lines, imports] = await Promise.all([
+    sb.from("categories").select("*").order("sort"),
+    sb.from("products").select("*").order("sort"),
+    sb.from("payment_methods").select("*").order("label"),
+    sb.from("settings").select("*"),
+    fetchAll(() => sb.from("expenses_lite").select("*").order("date", { ascending: false, nullsFirst: true })),
+    fetchAll(() => sb.from("receipts").select("id,storage_path,mime,source,original_name,from_address,email_subject,status,error,created_at").order("created_at", { ascending: false })),
+    fetchAll(() => sb.from("mileage").select("*").order("date", { ascending: false })),
+    fetchAll(() => sb.from("statement_lines").select("*").order("date", { ascending: false })),
+    sb.from("statement_imports").select("*").order("created_at", { ascending: false }),
+  ]);
+  for (const r of [cats, prods, cards, settings, imports]) if (r.error) throw r.error;
+  S.cats = cats.data; S.prods = prods.data; S.cards = cards.data; S.imports = imports.data;
+  S.settings = Object.fromEntries(settings.data.map((s) => [s.key, s.value]));
+  S.expenses = expenses; S.receipts = receipts; S.mileage = mileage; S.lines = lines;
+  buildYearSel();
+}
+let reloadT = null;
+function softReload() { clearTimeout(reloadT); reloadT = setTimeout(async () => { try { await loadAll(); if (!$(".modal-bg")) render(); else renderNav(); } catch (e) { console.warn(e); } }, 600); }
+
+async function api(path, body) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(API + "/" + path, {
+    method: body ? "POST" : "GET",
+    headers: { "Content-Type": "application/json", apikey: SB_KEY, Authorization: "Bearer " + (session?.access_token || SB_KEY) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let j = {}; try { j = await res.json(); } catch {}
+  if (!res.ok || j.error) throw new Error(j.error || ("Request failed (" + res.status + ")"));
+  return j;
+}
+async function signedUrl(path) {
+  if (!path) return null;
+  const c = S.urls.get(path); if (c && c.exp > Date.now()) return c.url;
+  const { data, error } = await sb.storage.from("receipts").createSignedUrl(path, 3600);
+  if (error) return null;
+  S.urls.set(path, { url: data.signedUrl, exp: Date.now() + 3500e3 });
+  return data.signedUrl;
+}
+async function hydrateThumbs(root = document) {
+  for (const el of $$("[data-thumb]", root)) {
+    const r = recById(el.dataset.thumb); if (!r) continue;
+    if (r.mime && r.mime.startsWith("image/")) { const u = await signedUrl(r.storage_path); if (u) el.innerHTML = `<img alt="Receipt" loading="lazy" src="${esc(u)}">`; }
+  }
+}
+
+/* ========= boot / auth ========= */
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  S.session = session;
+  sb.auth.onAuthStateChange((ev, s) => { S.session = s; if (ev === "SIGNED_OUT") location.reload(); });
+  if (!session) return renderAuth();
+  const { data: me } = await sb.from("members").select("*").eq("user_id", session.user.id).maybeSingle();
+  if (!me) { $("#main").innerHTML = `<div class="auth"><div class="card stack"><h2>No access</h2><p class="muted">${esc(session.user.email)} isn't set up for these books.</p><button class="btn" data-act="signout">Sign out</button></div></div>`; return; }
+  S.me = me; S.owner = me.role === "owner";
+  $("#who").textContent = S.owner ? "Owner" : "Accountant · read only";
+  S.view = S.owner ? (location.hash.slice(1) || "inbox") : (["reports","expenses","mileage","more","statements"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "reports");
+  await loadAll();
+  $("#nav").classList.remove("hide"); $("#yearSel").classList.remove("hide");
+  render();
+  sb.channel("live").on("postgres_changes", { event: "*", schema: "public", table: "expenses" }, softReload)
+    .on("postgres_changes", { event: "*", schema: "public", table: "receipts" }, softReload).subscribe();
+  if (S.owner) pickUpShared();
+}
+async function renderAuth() {
+  let needsSetup = false;
+  try { needsSetup = (await api("status")).needs_setup; } catch {}
+  $("#main").innerHTML = `<div class="auth"><div class="card stack">
+    <h2>${needsSetup ? "Set up your books" : "Sign in"}</h2>
+    <p class="muted small">${needsSetup ? "Create the owner account for Jaggars Software Holdings. Use your JSH email." : "Jaggars Software Holdings · expenses"}</p>
+    <form id="authForm" class="stack">
+      ${needsSetup ? `<label class="f"><span>Your name</span><input class="in" name="name" autocomplete="name"></label>` : ""}
+      <label class="f"><span>Email</span><input class="in" name="email" type="email" autocomplete="username" required></label>
+      <label class="f"><span>Password${needsSetup ? " (10+ characters)" : ""}</span><input class="in" name="password" type="password" autocomplete="${needsSetup ? "new-password" : "current-password"}" required minlength="${needsSetup ? 10 : 1}"></label>
+      <button class="btn primary" style="width:100%">${needsSetup ? "Create account" : "Sign in"}</button>
+      <p class="small" id="authErr" style="color:var(--bad)"></p>
+    </form></div></div>`;
+  $("#authForm").onsubmit = async (ev) => {
+    ev.preventDefault();
+    const f = Object.fromEntries(new FormData(ev.target)); const btn = ev.target.querySelector("button"); btn.disabled = true; $("#authErr").textContent = "";
+    try {
+      if (needsSetup) await api("setup", f);
+      const { error } = await sb.auth.signInWithPassword({ email: f.email.trim(), password: f.password });
+      if (error) throw error;
+      location.reload();
+    } catch (e) { $("#authErr").textContent = e.message; btn.disabled = false; }
+  };
+}
+
+/* ========= nav / shell ========= */
+function buildYearSel() {
+  const ys = new Set([new Date().getFullYear(), S.year]);
+  for (const e of S.expenses) if (e.date) ys.add(yOf(e.date));
+  for (const m of S.mileage) ys.add(yOf(m.date));
+  const sel = $("#yearSel");
+  sel.innerHTML = [...ys].filter(Boolean).sort((a, b) => b - a).map((y) => `<option ${y === S.year ? "selected" : ""}>${y}</option>`).join("");
+  sel.onchange = () => { S.year = +sel.value; render(); };
+}
+function inboxCount() { return S.expenses.filter((e) => e.status === "review").length + S.receipts.filter((r) => r.status === "error").length; }
+function renderNav() {
+  const n = inboxCount();
+  const items = S.owner
+    ? [["inbox", "Inbox", IC.inbox, n], ["capture", "Add", IC.camera, 0, true], ["expenses", "Expenses", IC.list], ["reports", "Reports", IC.chart], ["more", "More", IC.more]]
+    : [["reports", "Reports", IC.chart], ["expenses", "Expenses", IC.list], ["mileage", "Mileage", IC.car], ["more", "More", IC.more]];
+  const sub = ["mileage", "statements", "settings"];
+  $("#nav").innerHTML = items.map(([v, l, ic, badge, cap]) => {
+    const on = S.view === v || (v === "more" && sub.includes(S.view) && S.owner);
+    return `<button class="${on ? "on" : ""} ${cap ? "cap" : ""}" data-go="${v}">${cap ? `<span class="capdot">${ic}</span>` : ic}<span>${l}</span>${badge ? `<span class="badge">${badge}</span>` : ""}</button>`;
+  }).join("");
+}
+function go(v) { S.view = v; history.replaceState(null, "", "#" + v); render(); window.scrollTo(0, 0); }
+function render() {
+  if (!S.owner && ["inbox", "capture", "settings"].includes(S.view)) S.view = "reports";
+  renderNav();
+  const V = { inbox: viewInbox, capture: viewCapture, expenses: viewExpenses, reports: viewReports, more: viewMore, mileage: viewMileage, statements: viewStatements, settings: viewSettings }[S.view] || viewReports;
+  $("#main").innerHTML = V();
+  hydrateThumbs($("#main"));
+  if (S.view === "capture") wireCapture();
+  if (S.view === "settings") wireSettings();
+}
+
+/* ========= shared selects ========= */
+const catOpts = (sel) => `<option value="">Category…</option>` + S.cats.filter((c) => c.active || c.id === sel).map((c) => `<option value="${c.id}" ${c.id === sel ? "selected" : ""}>${esc(c.name)}</option>`).join("");
+const prodOpts = (sel, blank = "Product…") => `<option value="">${blank}</option>` + S.prods.filter((p) => p.active || p.id === sel).map((p) => `<option value="${p.id}" ${p.id === sel ? "selected" : ""}>${esc(p.name)}</option>`).join("");
+const cardOpts = (sel) => `<option value="">Card / account…</option>` + S.cards.filter((c) => c.active || c.id === sel).map((c) => `<option value="${c.id}" ${c.id === sel ? "selected" : ""}>${esc(c.label)}${c.last4 ? " ••" + esc(c.last4) : ""}</option>`).join("");
+function thumbHTML(e) {
+  const r = recById(e.receipt_id);
+  const ico = !r ? IC.list : r.mime === "application/pdf" ? IC.pdf : r.mime === "text/html" ? IC.mail : r.mime?.startsWith("image/") ? "" : IC.pdf;
+  return `<div class="thumb" data-act="edit" data-id="${e.id}" ${r?.mime?.startsWith("image/") ? `data-thumb="${r.id}"` : ""}>${ico || '<div class="spin"></div>'}</div>`;
+}
+function flagChips(e) {
+  const out = [];
+  if (e.no_receipt) out.push(`<span class="chip warn">No receipt image</span>`);
+  for (const f of e.ai_flags || []) { if (f === "no receipt image" && e.no_receipt) continue; out.push(`<span class="chip ${/duplicate|not a receipt|unclear|missing/i.test(f) ? "bad" : "warn"}">${esc(f)}</span>`); }
+  return out.join(" ");
+}
+
+/* ========= INBOX ========= */
+function viewInbox() {
+  const review = S.expenses.filter((e) => e.status === "review").sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
+  const reading = S.receipts.filter((r) => r.status === "pending" || r.status === "processing");
+  const failed = S.receipts.filter((r) => r.status === "error");
+  let h = `<div class="page-head"><div><h2>Inbox</h2><p>${review.length ? `${review.length} to confirm. Check the amount and category, then file.` : "Nothing waiting. New receipts land here when the reader isn't sure."}</p></div>
+    <button class="btn primary" data-go="capture">${IC.camera} Add receipt</button></div>`;
+  if (reading.length) h += `<div class="card pad row" style="margin-bottom:12px"><div class="spin"></div><div><b>Reading ${reading.length} receipt${reading.length > 1 ? "s" : ""}…</b><div class="small muted">They'll appear below or file themselves when done.</div></div></div>`;
+  if (failed.length) h += `<div class="section-title"><h3>Couldn't read</h3></div><div class="card">${failed.map((r) => `
+    <div class="q-item"><span class="chip bad">Error</span><div class="q-name"><b>${esc(r.email_subject || r.original_name || "Receipt")}</b><div class="small muted">${esc(r.error || "")}</div></div>
+    <button class="btn sm" data-act="viewrec" data-id="${r.id}">View</button><button class="btn sm" data-act="retry" data-id="${r.id}">Retry</button><button class="btn sm danger" data-act="delrec" data-id="${r.id}">Delete</button></div>`).join("")}</div>`;
+  if (!review.length && !failed.length && !reading.length) {
+    h += `<div class="card empty">${IC.check}<b>All caught up</b>Snap a receipt, forward an email, or text a photo. Anything the reader is sure about files itself.</div>`;
+    return h + recentFiled();
+  }
+  if (review.length) h += `<div class="section-title"><h3>To confirm</h3>${review.length > 1 ? `<button class="btn sm" data-act="fileready">File all that are complete</button>` : ""}</div><div class="card">${review.map(inboxItem).join("")}</div>`;
+  return h + recentFiled();
+}
+function recentFiled() {
+  const recent = S.expenses.filter((e) => e.status === "filed").sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1)).slice(0, 6);
+  if (!recent.length) return "";
+  return `<div class="section-title"><h3>Recently filed</h3><button class="btn sm ghost" data-go="expenses">See all</button></div><div class="card elist">${recent.map(expRow).join("")}</div>`;
+}
+function inboxItem(e) {
+  const c = catById(e.category_id);
+  const isMeal = c && /meal/i.test(c.name);
+  const dup = e.duplicate_of ? expById(e.duplicate_of) : null;
+  return `<div class="inbox-item" data-row="${e.id}">${thumbHTML(e)}<div>
+    <div class="ii-head"><div class="ii-vendor">${esc(e.vendor || "Unknown vendor")}</div><div class="ii-amt num">${money(e.total)}</div></div>
+    <div class="small muted">${fmtDate(e.date)}${e.description ? " · " + esc(e.description) : ""}</div>
+    <div style="margin-top:6px">${flagChips(e)}</div>
+    ${dup ? `<div class="small" style="margin-top:6px;color:var(--bad)">Looks like a copy of ${esc(dup.vendor || "")} ${money(dup.total)} on ${fmtDate(dup.date)}. <a href="#" data-act="deldup" data-id="${e.id}">Delete this one</a> · <a href="#" data-act="notdup" data-id="${e.id}">Keep both</a></div>` : ""}
+    <div class="ii-fields">
+      <input class="in num" type="number" step="0.01" inputmode="decimal" value="${e.total ?? ""}" data-f="total" data-id="${e.id}" aria-label="Amount" placeholder="Amount">
+      <input class="in" type="date" value="${e.date || ""}" data-f="date" data-id="${e.id}" aria-label="Date">
+      <select class="in" data-f="category_id" data-id="${e.id}" aria-label="Category">${catOpts(e.category_id)}</select>
+      <select class="in" data-f="product_id" data-id="${e.id}" aria-label="Product">${prodOpts(e.product_id)}</select>
+      ${isMeal || (e.ai_flags || []).some((f) => /purpose/i.test(f)) ? `<input class="in" style="grid-column:1/-1" value="${esc(e.business_purpose || "")}" data-f="business_purpose" data-id="${e.id}" placeholder="Business purpose (who, what was discussed)">` : ""}
+    </div>
+    <div class="ii-actions"><button class="btn primary sm" data-act="file" data-id="${e.id}">${IC.check} File it</button><button class="btn sm" data-act="edit" data-id="${e.id}">Details</button><button class="btn sm ghost danger" data-act="delexp" data-id="${e.id}">Delete</button></div>
+  </div></div>`;
+}
+
+/* ========= EXPENSE ROW ========= */
+function expRow(e) {
+  const c = catById(e.category_id), p = prodById(e.product_id);
+  return `<div class="e-row" data-act="edit" data-id="${e.id}">
+    <div class="e-date">${e.date ? `<b>${+e.date.slice(8, 10)}</b><span>${MONTHS[mOf(e.date) - 1]}</span>` : "<span>—</span>"}</div>
+    <div class="e-main"><div class="t">${esc(e.vendor || "Unknown")}</div><div class="s">${esc(c?.name || "Uncategorized")}${p ? " · " + esc(p.name) : ""}${e.no_receipt ? " · no receipt" : ""}</div></div>
+    <div class="e-amt num">${money(e.total)}${e.status === "review" ? `<div class="tiny" style="color:var(--warn)">in inbox</div>` : ""}</div></div>`;
+}
+
+/* ========= EDITOR ========= */
+async function openEditor(id) {
+  const e = expById(id); if (!e) return;
+  const r = recById(e.receipt_id);
+  const ro = !S.owner;
+  const dis = ro ? "disabled" : "";
+  const c = catById(e.category_id);
+  $("#modal").innerHTML = `<div class="modal-bg" data-act="closebg"><div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><h3>${esc(e.vendor || "Expense")}</h3>${e.status === "review" ? `<span class="chip warn">In inbox</span>` : `<span class="chip ok">Filed</span>`}<button class="btn ghost sm" data-act="close" aria-label="Close">${IC.x}</button></div>
+    <div class="modal-body"><div class="ed">
+      <div class="ed-prev"><div class="pv" id="pv">${r?.storage_path ? '<div class="spin"></div>' : `<div class="empty">${IC.list}<b>No receipt image</b>${S.owner ? `<label class="btn sm" style="margin-top:8px">${IC.upload} Attach one<input type="file" accept="image/*,application/pdf" class="hide" id="attachIn"></label>` : ""}</div>`}</div>
+        ${r?.storage_path ? `<div class="row between" style="padding:8px 12px;border-top:1px solid var(--line)"><span class="small muted">${esc(sourceLabel(r))}</span><a class="btn sm" id="openFull" target="_blank" rel="noopener">Open full size</a></div>` : ""}</div>
+      <form class="ed-form stack" id="edForm">
+        <div class="fgrid">
+          <label class="f"><span>Vendor</span><input class="in" name="vendor" value="${esc(e.vendor || "")}" ${dis}></label>
+          <label class="f"><span>Date</span><input class="in" type="date" name="date" value="${e.date || ""}" ${dis}></label>
+          <label class="f"><span>Total charged</span><input class="in num" type="number" step="0.01" inputmode="decimal" name="total" value="${e.total ?? ""}" ${dis}></label>
+          <label class="f"><span>Category</span><select class="in" name="category_id" ${dis}>${catOpts(e.category_id)}</select></label>
+          <label class="f"><span>Product / project</span><select class="in" name="product_id" ${dis}>${prodOpts(e.product_id, "None")}</select></label>
+          <label class="f"><span>Paid with</span><select class="in" name="payment_method_id" ${dis}>${cardOpts(e.payment_method_id)}</select></label>
+        </div>
+        <div class="fgrid r3">
+          <label class="f"><span>Subtotal</span><input class="in num" type="number" step="0.01" name="subtotal" value="${e.subtotal ?? ""}" ${dis}></label>
+          <label class="f"><span>Tax</span><input class="in num" type="number" step="0.01" name="tax" value="${e.tax ?? ""}" ${dis}></label>
+          <label class="f"><span>Tip</span><input class="in num" type="number" step="0.01" name="tip" value="${e.tip ?? ""}" ${dis}></label>
+        </div>
+        <label class="f"><span>What was it for</span><input class="in" name="description" value="${esc(e.description || "")}" ${dis}></label>
+        <div class="fgrid">
+          <label class="f"><span>Business use %</span><input class="in num" type="number" min="0" max="100" step="1" name="business_pct" value="${e.business_pct ?? 100}" ${dis}></label>
+          <label class="f"><span>Deductible</span><input class="in num" value="${money(deductible(e))}" disabled id="dedOut"></label>
+        </div>
+        <label class="f"><span>Business purpose${c && /meal/i.test(c.name) ? " (required for meals)" : ""}</span><input class="in" name="business_purpose" value="${esc(e.business_purpose || "")}" placeholder="e.g. Pilot planning with Brije" ${dis}></label>
+        <label class="f"><span>Attendees</span><input class="in" name="attendees" value="${esc(e.attendees || "")}" placeholder="For meals: who was there" ${dis}></label>
+        <label class="f"><span>Notes</span><textarea class="in" name="notes" ${dis}>${esc(e.notes || "")}</textarea></label>
+        ${e.line_items?.length ? `<div><div class="small muted" style="font-weight:600;margin-bottom:4px">Line items</div><div class="li-list">${e.line_items.map((li) => `<div><span>${li.qty && li.qty !== 1 ? li.qty + " × " : ""}${esc(li.desc)}</span><span class="num">${li.amount != null ? money(li.amount) : ""}</span></div>`).join("")}</div></div>` : ""}
+        ${e.ai_flags?.length || e.no_receipt ? `<div>${flagChips(e)}</div>` : ""}
+        ${e.card_last4 ? `<div class="small muted">Card on receipt: ••${esc(e.card_last4)}</div>` : ""}
+      </form></div></div>
+    ${S.owner ? `<div class="modal-foot">
+      <button class="btn primary" data-act="edsave" data-id="${e.id}" data-file="1">${IC.check} ${e.status === "review" ? "Save & file" : "Save"}</button>
+      ${e.status === "filed" ? `<button class="btn" data-act="edsave" data-id="${e.id}" data-file="0">Move to inbox</button>` : `<button class="btn" data-act="edsave" data-id="${e.id}" data-file="0">Save, keep in inbox</button>`}
+      ${r?.storage_path || r?.email_text ? `<button class="btn" data-act="reread" data-id="${e.id}">Re-read receipt</button>` : ""}
+      <span style="flex:1"></span><button class="btn danger ghost" data-act="delexp" data-id="${e.id}">Delete</button></div>` : ""}
+  </div></div>`;
+  const form = $("#edForm");
+  form.addEventListener("input", () => {
+    const f = Object.fromEntries(new FormData(form));
+    $("#dedOut").value = money(deductible({ ...e, total: num(f.total), business_pct: num(f.business_pct) ?? 100, category_id: f.category_id }));
+  });
+  const att = $("#attachIn");
+  if (att) att.onchange = async () => { const f = att.files[0]; if (!f) return; toast("Attaching…"); try { const rid = await storeFile(f, "upload"); await sb.from("expenses").update({ receipt_id: rid, no_receipt: false }).eq("id", e.id); await loadAll(); openEditor(e.id); toast("Receipt attached"); } catch (err) { toast(err.message); } };
+  if (r?.storage_path) previewReceipt(r, $("#pv"), $("#openFull"));
+}
+function sourceLabel(r) { return ({ email: "Emailed" + (r.from_address ? " from " + r.from_address : ""), sms: "Texted" + (r.from_address ? " from " + r.from_address : ""), camera: "Photo from app", upload: "Uploaded" + (r.original_name ? " · " + r.original_name : ""), manual: "Manual" })[r.source] + " · " + new Date(r.created_at).toLocaleDateString(); }
+async function previewReceipt(r, box, link) {
+  const u = await signedUrl(r.storage_path);
+  if (!u) { box.innerHTML = `<div class="empty">Couldn't load the file.</div>`; return; }
+  if (r.mime === "text/html") {
+    const html = await (await fetch(u)).text();
+    box.innerHTML = `<iframe sandbox="" title="Email receipt"></iframe>`; box.querySelector("iframe").srcdoc = html;
+    if (link) { link.href = URL.createObjectURL(new Blob([html], { type: "text/html" })); }
+  } else if (r.mime === "application/pdf") {
+    box.innerHTML = `<iframe title="PDF receipt" src="${esc(u)}"></iframe>`; if (link) link.href = u;
+  } else { box.innerHTML = `<img alt="Receipt" src="${esc(u)}">`; if (link) link.href = u; }
+}
+function closeModal() { $("#modal").innerHTML = ""; }
+
+/* ========= CAPTURE ========= */
+function viewCapture() {
+  const intake = S.settings.intake || {};
+  const has = (S.settings._secret || {});
+  const q = S.queue;
+  return `<div class="page-head"><div><h2>Add receipts</h2><p>Photos, PDFs, screenshots. The reader fills in the details.</p></div></div>
+  <div class="cap-hero">
+    <label class="cap-btn main">${IC.camera}<b>Take a photo</b><span>Opens your camera</span><input type="file" accept="image/*" capture="environment" id="camIn" multiple></label>
+    <label class="cap-btn">${IC.upload}<b>Upload files</b><span>Images or PDFs, as many as you like</span><input type="file" accept="image/*,application/pdf" id="upIn" multiple></label>
+  </div>
+  <div class="drop only-wide" id="drop" style="margin-top:12px">Drop receipt files here. Clearing a backlog? Drop the whole folder's worth at once.</div>
+  ${q.length ? `<div class="section-title"><h3>This batch</h3><span class="small muted">${q.filter((x) => x.state === "done").length} of ${q.length} done</span></div><div class="card" id="queue">${q.map(qItem).join("")}</div>` : ""}
+  <div class="section-title"><h3>Other ways in</h3></div>
+  <div class="card pad">
+    <div class="intake-line"><div class="intake-ico">${IC.mail}</div><div style="flex:1"><b>Forward email receipts</b><div class="small muted">${intake.address ? `Forward to <b>${esc(intake.address)}</b>. Set a Gmail filter to forward bills from Netlify, Supabase, Anthropic, Apple and others automatically.` : `Needs an inbound email address. <a href="#" data-go="settings">Set it up in Settings</a>.`}</div></div></div>
+    <div class="intake-line"><div class="intake-ico">${IC.sms}</div><div style="flex:1"><b>Text a photo</b><div class="small muted">${intake.sms_number ? `Text receipt photos to <b>${esc(intake.sms_number)}</b>. You can also text “parking 12.50 Tampa” for things with no receipt.` : `Uses your Twilio number. <a href="#" data-go="settings">Set it up in Settings</a>.`}</div></div></div>
+    <div class="intake-line"><div class="intake-ico">${IC.plus}</div><div style="flex:1"><b>No receipt at all</b><div class="small muted">Enter it by hand. It's marked “no receipt” so your CPA knows.</div></div><button class="btn sm" data-act="manual">Add manually</button></div>
+    <div class="intake-line"><div class="intake-ico">${IC.car}</div><div style="flex:1"><b>Business driving</b><div class="small muted">Log miles at the IRS rate.</div></div><button class="btn sm" data-go="mileage">Log miles</button></div>
+  </div>`;
+}
+function qItem(x) {
+  const st = { wait: `<span class="chip">Waiting</span>`, up: `<div class="spin"></div>`, read: `<div class="spin"></div>`, done: `<span class="chip ok">${esc(x.msg || "Done")}</span>`, review: `<span class="chip warn">${esc(x.msg || "To confirm")}</span>`, dup: `<span class="chip">Already have it</span>`, err: `<span class="chip bad">Error</span>` }[x.state];
+  return `<div class="q-item"><div class="q-name"><b>${esc(x.name)}</b><div class="small muted">${esc(x.state === "up" ? "Uploading…" : x.state === "read" ? "Reading…" : x.state === "err" ? x.msg : x.detail || "")}</div></div>${st}</div>`;
+}
+function refreshQueue() { const el = $("#queue"); if (el && S.view === "capture") el.innerHTML = S.queue.map(qItem).join(""); else if (S.view === "capture") render(); }
+function wireCapture() {
+  const add = (files) => { if (files?.length) enqueue([...files], "upload"); };
+  $("#camIn").onchange = (ev) => { enqueue([...ev.target.files], "camera"); ev.target.value = ""; };
+  $("#upIn").onchange = (ev) => { add(ev.target.files); ev.target.value = ""; };
+  const d = $("#drop");
+  if (d) {
+    d.ondragover = (ev) => { ev.preventDefault(); d.classList.add("over"); };
+    d.ondragleave = () => d.classList.remove("over");
+    d.ondrop = (ev) => { ev.preventDefault(); d.classList.remove("over"); add(ev.dataTransfer.files); };
+  }
+}
+let running = 0;
+function enqueue(files, source) {
+  for (const f of files) S.queue.unshift({ id: uuid(), file: f, name: f.name || "Photo", source, state: "wait" });
+  if (S.view !== "capture") go("capture"); else render();
+  pump();
+}
+async function pump() {
+  while (running < 3) {
+    const job = [...S.queue].reverse().find((x) => x.state === "wait"); if (!job) break;
+    running++; job.state = "up"; refreshQueue();
+    processJob(job).finally(() => { running--; refreshQueue(); pump(); if (!S.queue.some((x) => ["wait", "up", "read"].includes(x.state))) finishBatch(); });
+  }
+}
+async function finishBatch() { await loadAll(); await runMatching(true); renderNav(); if (S.view !== "capture") render(); }
+async function processJob(job) {
+  try {
+    let rid;
+    try { rid = await storeFile(job.file, job.source); }
+    catch (e) { if (e.dup) { job.state = "dup"; return; } throw e; }
+    job.state = "read"; refreshQueue();
+    const out = await api("extract", { receipt_id: rid });
+    const ex = out.expenses || [];
+    const allFiled = ex.length && ex.every((e) => e.status === "filed");
+    job.state = allFiled ? "done" : "review";
+    job.msg = ex.map((e) => money(e.total)).join(" + ") + (allFiled ? " filed" : " · confirm");
+    job.detail = ex.map((e) => e.vendor || "Unknown").join(", ");
+  } catch (e) { job.state = "err"; job.msg = e.message; }
+}
+async function prepFile(file) {
+  const type = (file.type || "").toLowerCase();
+  if (type === "application/pdf" || /\.pdf$/i.test(file.name)) return { blob: file, mime: "application/pdf", ext: "pdf" };
+  const draw = (src) => {
+    const w = src.width || src.naturalWidth, h = src.height || src.naturalHeight;
+    const s = Math.min(1, 2200 / Math.max(w, h));
+    const c = document.createElement("canvas"); c.width = Math.round(w * s); c.height = Math.round(h * s);
+    c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+    return new Promise((r) => c.toBlob(r, "image/jpeg", 0.86));
+  };
+  try { const bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); return { blob: await draw(bmp), mime: "image/jpeg", ext: "jpg" }; }
+  catch {
+    try {
+      const url = URL.createObjectURL(file); const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      return { blob: await draw(img), mime: "image/jpeg", ext: "jpg" };
+    } catch {
+      if (["image/jpeg", "image/png", "image/webp", "image/gif"].includes(type)) return { blob: file, mime: type, ext: type.split("/")[1] };
+      throw new Error("This browser can't open that image type. Export it as JPG or PDF.");
+    }
+  }
+}
+async function storeFile(file, source) {
+  const { blob, mime, ext } = await prepFile(file);
+  const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const { data: dup } = await sb.from("receipts").select("id").eq("file_hash", hash).limit(1);
+  if (dup?.length) { const err = new Error("Already uploaded"); err.dup = true; throw err; }
+  const d = new Date(); const path = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${uuid()}.${ext}`;
+  const up = await sb.storage.from("receipts").upload(path, blob, { contentType: mime });
+  if (up.error) throw new Error("Upload failed: " + up.error.message);
+  const { data, error } = await sb.from("receipts").insert({ storage_path: path, mime, file_hash: hash, original_name: file.name || null, source }).select("id").single();
+  if (error) throw error;
+  return data.id;
+}
+async function pickUpShared() {
+  if (!new URLSearchParams(location.search).has("shared") || !("caches" in window)) return;
+  try {
+    const cache = await caches.open("share-inbox"); const keys = await cache.keys(); const files = [];
+    for (const k of keys) { const res = await cache.match(k); const b = await res.blob(); files.push(new File([b], decodeURIComponent(res.headers.get("x-name") || "shared"), { type: b.type })); await cache.delete(k); }
+    history.replaceState(null, "", location.pathname + "#capture");
+    if (files.length) enqueue(files, "upload");
+  } catch (e) { console.warn(e); }
+}
+
+function openManual(prefill = {}) {
+  $("#modal").innerHTML = `<div class="modal-bg" data-act="closebg"><div class="modal narrow"><div class="modal-head"><h3>Add expense without a receipt</h3><button class="btn ghost sm" data-act="close">${IC.x}</button></div>
+    <form class="modal-body pad stack" id="manForm">
+      <div class="fgrid"><label class="f"><span>Vendor</span><input class="in" name="vendor" required value="${esc(prefill.vendor || "")}"></label>
+      <label class="f"><span>Date</span><input class="in" type="date" name="date" required value="${prefill.date || todayISO()}"></label>
+      <label class="f"><span>Amount</span><input class="in num" type="number" step="0.01" inputmode="decimal" name="total" required value="${prefill.total ?? ""}"></label>
+      <label class="f"><span>Category</span><select class="in" name="category_id" required>${catOpts(prefill.category_id)}</select></label>
+      <label class="f"><span>Product</span><select class="in" name="product_id">${prodOpts(prefill.product_id, "None")}</select></label>
+      <label class="f"><span>Paid with</span><select class="in" name="payment_method_id">${cardOpts(prefill.payment_method_id)}</select></label></div>
+      <label class="f"><span>What / why</span><input class="in" name="business_purpose" placeholder="Business purpose"></label>
+    </form>
+    <div class="modal-foot"><button class="btn primary" data-act="mansave">${IC.check} Save</button></div></div></div>`;
+}
+
+/* ========= EXPENSES ========= */
+function filteredExpenses() {
+  const f = S.ef; const q = f.q.trim().toLowerCase();
+  return S.expenses.filter((e) => {
+    if (f.status && e.status !== f.status) return false;
+    if (e.date ? yOf(e.date) !== S.year : f.status === "filed") return false;
+    if (f.month) { if (f.month.startsWith("Q")) { if (qOf(e.date) !== +f.month[1]) return false; } else if (mOf(e.date) !== +f.month) return false; }
+    if (f.cat && e.category_id !== f.cat) return false;
+    if (f.prod && (f.prod === "none" ? e.product_id : e.product_id !== f.prod)) return false;
+    if (f.card && e.payment_method_id !== f.card) return false;
+    if (f.vendor && e.vendor_key !== f.vendor) return false;
+    if (q && !`${e.vendor} ${e.description} ${e.notes} ${e.business_purpose} ${e.total}`.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a, b) => (b.date || "") > (a.date || "") ? 1 : -1);
+}
+function viewExpenses() {
+  const f = S.ef; const rows = filteredExpenses();
+  const total = rows.reduce((s, e) => s + (+e.total || 0), 0), ded = rows.reduce((s, e) => s + deductible(e), 0);
+  const vendorName = f.vendor ? (S.expenses.find((e) => e.vendor_key === f.vendor)?.vendor || f.vendor) : "";
+  const anyFilter = f.q || f.month || f.cat || f.prod || f.vendor || f.card || f.status !== "filed";
+  return `<div class="page-head"><div><h2>Expenses ${S.year}</h2><p class="num">${rows.length} item${rows.length === 1 ? "" : "s"} · ${money(total)} spent · ${money(ded)} deductible</p></div>
+    <div class="row">${S.owner ? `<button class="btn" data-act="manual">${IC.plus} Add</button>` : ""}<button class="btn" data-act="csv">${IC.dl} CSV</button></div></div>
+  <div class="card pad" style="margin-bottom:12px"><div class="filters">
+    <input class="in q" placeholder="Search vendor, notes, amount…" value="${esc(f.q)}" data-ef="q">
+    <select class="in" data-ef="month"><option value="">All months</option>${[1,2,3,4].map((q) => `<option value="Q${q}" ${f.month === "Q" + q ? "selected" : ""}>Q${q}</option>`).join("")}${MONTHS.map((m, i) => `<option value="${i + 1}" ${+f.month === i + 1 && !String(f.month).startsWith("Q") ? "selected" : ""}>${m}</option>`).join("")}</select>
+    <select class="in" data-ef="cat"><option value="">All categories</option>${S.cats.map((c) => `<option value="${c.id}" ${f.cat === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+    <select class="in" data-ef="prod"><option value="">All products</option><option value="none" ${f.prod === "none" ? "selected" : ""}>No product</option>${S.prods.map((p) => `<option value="${p.id}" ${f.prod === p.id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select>
+    <select class="in" data-ef="status"><option value="filed" ${f.status === "filed" ? "selected" : ""}>Filed</option><option value="review" ${f.status === "review" ? "selected" : ""}>In inbox</option><option value="" ${f.status === "" ? "selected" : ""}>Everything</option></select>
+  </div>${anyFilter ? `<div class="row wrap" style="margin-top:10px">${vendorName ? `<span class="chip info">Vendor: ${esc(vendorName)}</span>` : ""}${f.card ? `<span class="chip info">Card: ${esc(cardById(f.card)?.label || "")}</span>` : ""}<button class="btn sm ghost" data-act="clearef">Clear filters</button></div>` : ""}</div>
+  ${rows.length ? `
+  <div class="card only-wide"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Vendor</th><th>Category</th><th>Product</th><th>Card</th><th class="r">Amount</th><th class="r">Deductible</th><th></th></tr></thead><tbody>
+    ${rows.map((e) => { const c = catById(e.category_id), p = prodById(e.product_id), cd = cardById(e.payment_method_id); return `<tr class="click" data-act="edit" data-id="${e.id}"><td class="num" style="white-space:nowrap">${e.date ? fmtDate(e.date) : "—"}</td><td><b>${esc(e.vendor || "Unknown")}</b>${e.description ? `<div class="tiny muted">${esc(e.description)}</div>` : ""}</td><td>${esc(c?.name || "—")}</td><td>${p ? `<span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)}` : "—"}</td><td class="small">${cd ? esc(cd.label) : e.card_last4 ? "••" + esc(e.card_last4) : "—"}</td><td class="r num"><b>${money(e.total)}</b></td><td class="r num muted">${money(deductible(e))}</td><td>${e.no_receipt ? `<span class="chip warn">no receipt</span>` : e.status === "review" ? `<span class="chip warn">inbox</span>` : ""}</td></tr>`; }).join("")}
+  </tbody><tfoot><tr><td colspan="5">${rows.length} items</td><td class="r num">${money(total)}</td><td class="r num">${money(ded)}</td><td></td></tr></tfoot></table></div></div>
+  <div class="card elist only-narrow">${rows.map(expRow).join("")}</div>` : `<div class="card empty">${IC.list}<b>Nothing here</b>${anyFilter ? "No expenses match these filters." : "Filed expenses for " + S.year + " will show here."}</div>`}`;
+}
+
+/* ========= REPORTS ========= */
+function periodRows() {
+  const p = S.rp.period;
+  return S.expenses.filter((e) => e.status === "filed" && e.date && yOf(e.date) === S.year && (p === "year" || (p[0] === "Q" ? qOf(e.date) === +p[1] : mOf(e.date) === +p.slice(1))));
+}
+function periodMiles() {
+  const p = S.rp.period;
+  return S.mileage.filter((m) => yOf(m.date) === S.year && (p === "year" || (p[0] === "Q" ? qOf(m.date) === +p[1] : mOf(m.date) === +p.slice(1))));
+}
+function periodLabel() { const p = S.rp.period; return p === "year" ? String(S.year) : p[0] === "Q" ? `${p} ${S.year}` : `${MONTHS[+p.slice(1) - 1]} ${S.year}`; }
+function groupRows(rows, by) {
+  const m = new Map();
+  for (const e of rows) {
+    let k, label, sub = "", color = null, filter;
+    if (by === "category") { const c = catById(e.category_id); k = e.category_id || "none"; label = c?.name || "Uncategorized"; sub = c?.tax_line ? "Sch C line " + c.tax_line : ""; filter = { cat: e.category_id || "" }; }
+    else if (by === "vendor") { k = e.vendor_key || "?"; label = e.vendor || "Unknown"; filter = { vendor: e.vendor_key }; }
+    else if (by === "product") { const p = prodById(e.product_id); k = e.product_id || "none"; label = p?.name || "No product"; color = p?.color; filter = { prod: e.product_id || "none" }; }
+    else if (by === "card") { const c = cardById(e.payment_method_id); k = e.payment_method_id || (e.card_last4 ? "l" + e.card_last4 : "none"); label = c ? c.label + (c.last4 ? " ••" + c.last4 : "") : e.card_last4 ? "Card ••" + e.card_last4 : "Unknown card"; filter = { card: e.payment_method_id || "" }; }
+    else if (by === "month") { k = String(mOf(e.date)).padStart(2, "0"); label = MONTHS[mOf(e.date) - 1]; filter = { month: String(mOf(e.date)) }; }
+    else { k = "Q" + qOf(e.date); label = k; filter = { month: k }; }
+    const g = m.get(k) || { k, label, sub, color, filter, n: 0, total: 0, ded: 0 };
+    g.n++; g.total += +e.total || 0; g.ded += deductible(e); m.set(k, g);
+  }
+  const out = [...m.values()];
+  return by === "month" || by === "quarter" ? out.sort((a, b) => a.k > b.k ? 1 : -1) : out.sort((a, b) => b.total - a.total);
+}
+const SCHED_C = { "8": "Advertising", "9": "Car and truck expenses", "10": "Commissions and fees", "11": "Contract labor", "13": "Depreciation and section 179", "15": "Insurance (other than health)", "16b": "Interest (other)", "17": "Legal and professional services", "18": "Office expense", "20a": "Rent or lease: vehicles, machinery, equipment", "20b": "Rent or lease: other business property", "21": "Repairs and maintenance", "22": "Supplies", "23": "Taxes and licenses", "24a": "Travel", "24b": "Deductible meals", "25": "Utilities", "27a": "Other expenses" };
+const lineSort = (a) => { const m = String(a).match(/^(\d+)([a-z]?)/); return m ? +m[1] * 10 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 9999; };
+function schedC(rows, miles) {
+  const m = new Map();
+  for (const e of rows) { const c = catById(e.category_id); if (!c?.tax_line) continue; const d = deductible(e); if (!d) continue; const g = m.get(c.tax_line) || { line: c.tax_line, label: SCHED_C[c.tax_line] || "Line " + c.tax_line, amt: 0, n: 0, cats: new Set() }; g.amt += d; g.n++; g.cats.add(c.name); m.set(c.tax_line, g); }
+  const md = miles.reduce((s, x) => s + x.miles * mileageRate(x.date), 0);
+  if (md) { const g = m.get("9") || { line: "9", label: SCHED_C["9"], amt: 0, n: 0, cats: new Set() }; g.amt += md; g.cats.add("Mileage (standard rate)"); m.set("9", g); }
+  return [...m.values()].sort((a, b) => lineSort(a.line) - lineSort(b.line));
+}
+function recurring() {
+  const now = new Date(); const months = [];
+  for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(d.toLocaleDateString("en-CA").slice(0, 7)); }
+  const by = new Map();
+  for (const e of S.expenses) { if (!e.date || !e.vendor_key || e.status !== "filed") continue; const g = by.get(e.vendor_key) || { vendor: e.vendor, seen: new Map() }; const ym = e.date.slice(0, 7); g.seen.set(ym, (g.seen.get(ym) || 0) + (+e.total || 0)); by.set(e.vendor_key, g); }
+  const out = [];
+  for (const [k, g] of by) {
+    const hits = months.slice(0, 5).filter((m) => g.seen.has(m)).length;
+    if (hits < 3) continue;
+    const amts = months.filter((m) => g.seen.has(m)).map((m) => g.seen.get(m)).sort((a, b) => a - b);
+    const first = months.findIndex((m) => g.seen.has(m));
+    const gaps = months.slice(first, 5).filter((m) => !g.seen.has(m));
+    const thisMonth = g.seen.has(months[5]);
+    out.push({ k, vendor: g.vendor, typical: amts[Math.floor(amts.length / 2)], months: months.map((m, i) => g.seen.has(m) ? "y" : i >= first && i < 5 ? "n" : ""), gaps, thisMonth });
+  }
+  return { months, list: out.sort((a, b) => (b.gaps.length - a.gaps.length) || (b.typical - a.typical)) };
+}
+function viewReports() {
+  const rows = periodRows(), miles = periodMiles();
+  const total = rows.reduce((s, e) => s + (+e.total || 0), 0), ded = rows.reduce((s, e) => s + deductible(e), 0);
+  const mileDed = miles.reduce((s, x) => s + x.miles * mileageRate(x.date), 0), mileN = miles.reduce((s, x) => s + +x.miles, 0);
+  const noRec = rows.filter((e) => e.no_receipt).length;
+  const inboxN = S.expenses.filter((e) => e.status === "review").length;
+  const unmatched = S.lines.filter((l) => !l.matched_expense_id && !l.ignored && yOf(l.date) === S.year).length;
+  // monthly
+  const yearRows = S.expenses.filter((e) => e.status === "filed" && e.date && yOf(e.date) === S.year);
+  const byM = Array(12).fill(0); for (const e of yearRows) byM[mOf(e.date) - 1] += +e.total || 0;
+  const byQ = [0, 1, 2, 3].map((q) => byM.slice(q * 3, q * 3 + 3).reduce((a, b) => a + b, 0));
+  const maxM = Math.max(1, ...byM);
+  const p = S.rp.period;
+  const groups = groupRows(rows, S.rp.group); const gmax = Math.max(1, ...groups.map((g) => g.total));
+  const sc = schedC(rows, miles); const scTotal = sc.reduce((s, x) => s + x.amt, 0);
+  const rec = recurring();
+  return `<div class="page-head"><div><h2>Reports</h2><p>${esc(periodLabel())} · filed expenses only${inboxN ? ` · <a href="#" data-go="inbox">${inboxN} still in inbox</a>` : ""}</p></div>
+    <div class="row wrap"><button class="btn" data-act="xlsx">${IC.dl} Excel for CPA</button><button class="btn primary" data-act="zip">${IC.dl} CPA package (.zip)</button></div></div>
+  <div class="kpis">
+    <div class="card kpi"><div class="l">Spent</div><div class="v num">${money(total, false)}</div><div class="s">${rows.length} expenses</div></div>
+    <div class="card kpi"><div class="l">Deductible</div><div class="v num">${money(ded + mileDed, false)}</div><div class="s">incl. ${money(mileDed, false)} mileage</div></div>
+    <div class="card kpi"><div class="l">Miles</div><div class="v num">${Math.round(mileN).toLocaleString()}</div><div class="s">${miles.length} trips</div></div>
+    <div class="card kpi"><div class="l">Gaps</div><div class="v num">${noRec + unmatched}</div><div class="s">${noRec} no receipt · ${unmatched} card charges unmatched</div></div>
+  </div>
+  <div class="card pad" style="margin-top:12px">
+    <div class="row between wrap"><h3>${S.year} by month</h3><div class="seg"><button class="${p === "year" ? "on" : ""}" data-rp="year">Full year</button>${[1, 2, 3, 4].map((q) => `<button class="${p === "Q" + q ? "on" : ""}" data-rp="Q${q}">Q${q}</button>`).join("")}</div></div>
+    <div class="chart">${byM.map((v, i) => { const on = p === "M" + (i + 1); const inP = p === "year" || on || (p[0] === "Q" && Math.floor(i / 3) + 1 === +p[1]); return `<div class="col ${on ? "on" : ""} ${inP ? "" : "dim"}" data-rp="M${i + 1}" title="${MONTHS[i]}: ${money(v)}"><span class="v num">${v ? money(v, false) : ""}</span><div class="b" style="height:${(v / maxM) * 100}%"></div></div>`; }).join("")}</div>
+    <div class="chart-x">${MONTHS.map((m) => `<span>${m}</span>`).join("")}</div>
+    <div class="qrow">${byQ.map((v, i) => `<div class="${p === "Q" + (i + 1) ? "on" : ""}" data-rp="Q${i + 1}">Q${i + 1}<b class="num">${money(v, false)}</b></div>`).join("")}</div>
+  </div>
+  <div class="section-title"><h3>Breakdown · ${esc(periodLabel())}</h3><div class="seg">${[["category", "Category"], ["vendor", "Vendor"], ["product", "Product"], ["card", "Card"], ["month", "Month"], ["quarter", "Quarter"]].map(([k, l]) => `<button class="${S.rp.group === k ? "on" : ""}" data-rg="${k}">${l}</button>`).join("")}</div></div>
+  <div class="card">${groups.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${esc({ category: "Category", vendor: "Vendor", product: "Product", card: "Card", month: "Month", quarter: "Quarter" }[S.rp.group])}</th><th class="r">#</th><th class="r">Spent</th><th class="r">Deductible</th><th style="width:22%"></th></tr></thead><tbody>
+    ${groups.map((g) => `<tr class="click" data-drill='${esc(JSON.stringify(g.filter))}'><td>${g.color ? `<span class="dot" style="background:${esc(g.color)}"></span>` : ""}<b>${esc(g.label)}</b>${g.sub ? `<div class="tiny muted">${esc(g.sub)}</div>` : ""}</td><td class="r num muted">${g.n}</td><td class="r num"><b>${money(g.total)}</b></td><td class="r num muted">${money(g.ded)}</td><td><div class="bar"><i style="width:${(g.total / gmax) * 100}%"></i></div></td></tr>`).join("")}
+  </tbody><tfoot><tr><td>Total</td><td class="r num">${rows.length}</td><td class="r num">${money(total)}</td><td class="r num">${money(ded)}</td><td></td></tr></tfoot></table></div>` : `<div class="empty">${IC.chart}<b>No filed expenses in ${esc(periodLabel())}</b>Add receipts and they'll roll up here.</div>`}</div>
+  <div class="section-title"><h3>Schedule C summary · ${esc(periodLabel())}</h3></div>
+  <div class="card">${sc.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line</th><th>Description</th><th>Includes</th><th class="r">Deductible</th></tr></thead><tbody>
+    ${sc.map((x) => `<tr><td class="num"><b>${esc(x.line)}</b></td><td>${esc(x.label)}${x.line === "13" ? `<div class="tiny" style="color:var(--warn)">CPA decides depreciation vs. section 179</div>` : ""}</td><td class="small muted">${esc([...x.cats].join(", "))}</td><td class="r num"><b>${money(x.amt)}</b></td></tr>`).join("")}
+  </tbody><tfoot><tr><td></td><td>Total deductible</td><td></td><td class="r num">${money(scTotal)}</td></tr></tfoot></table></div><div class="pad small muted" style="border-top:1px solid var(--line)">Meals are counted at 50%. Business-use percentages are applied. Have your CPA confirm the category-to-line mapping.</div>` : `<div class="empty">Nothing deductible filed for this period yet.</div>`}</div>
+  ${p === "year" || p[0] === "Q" ? estimatedBlock(byQ) : ""}
+  <div class="section-title"><h3>Recurring charges</h3><span class="small muted">last 6 months · red = missing receipt</span></div>
+  <div class="card">${rec.list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vendor</th><th class="r">Typical</th><th>${rec.months.map((m) => MONTHS[+m.slice(5) - 1]).join(" · ")}</th><th></th></tr></thead><tbody>
+    ${rec.list.map((r) => `<tr class="click" data-drill='${esc(JSON.stringify({ vendor: r.k }))}'><td><b>${esc(r.vendor)}</b></td><td class="r num">${money(r.typical)}</td><td><div class="recur-dots">${r.months.map((x) => `<i class="${x}"></i>`).join("")}</div></td><td>${r.gaps.length ? `<span class="chip bad">${r.gaps.length} missing</span>` : !r.thisMonth ? `<span class="chip">due this month</span>` : `<span class="chip ok">complete</span>`}</td></tr>`).join("")}
+  </tbody></table></div>` : `<div class="empty">Recurring bills show up here once a vendor has appeared in 3 of the last 5 months.</div>`}</div>`;
+}
+function estimatedBlock(byQ) {
+  const due = [["Q1", `Apr 15, ${S.year}`], ["Q2", `Jun 15, ${S.year}`], ["Q3", `Sep 15, ${S.year}`], ["Q4", `Jan 15, ${S.year + 1}`]];
+  const qDed = [1, 2, 3, 4].map((q) => S.expenses.filter((e) => e.status === "filed" && e.date && yOf(e.date) === S.year && qOf(e.date) === q).reduce((s, e) => s + deductible(e), 0) + S.mileage.filter((m) => yOf(m.date) === S.year && qOf(m.date) === q).reduce((s, x) => s + x.miles * mileageRate(x.date), 0));
+  return `<div class="section-title"><h3>Quarterly (for estimated taxes)</h3></div><div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Quarter</th><th>Estimate due</th><th class="r">Spent</th><th class="r">Deductible</th><th class="r">Year to date deductible</th></tr></thead><tbody>
+    ${due.map(([q, d], i) => `<tr class="click" data-rp="${q}"><td><b>${q}</b></td><td class="muted">${d}</td><td class="r num">${money(byQ[i])}</td><td class="r num">${money(qDed[i])}</td><td class="r num muted">${money(qDed.slice(0, i + 1).reduce((a, b) => a + b, 0))}</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+}
+
+/* ========= EXPORTS ========= */
+function exportRows(rows) {
+  return rows.slice().sort((a, b) => a.date > b.date ? 1 : -1).map((e) => {
+    const c = catById(e.category_id), p = prodById(e.product_id), cd = cardById(e.payment_method_id), r = recById(e.receipt_id);
+    return { Date: e.date, Vendor: e.vendor || "", Description: e.description || "", Category: c?.name || "", "Sch C line": c?.tax_line || "", Product: p?.name || "", "Paid with": cd ? cd.label + (cd.last4 ? " ••" + cd.last4 : "") : e.card_last4 ? "••" + e.card_last4 : "", Total: +e.total || 0, Tax: e.tax ?? "", Tip: e.tip ?? "", "Business %": +e.business_pct, Deductible: deductible(e), "Business purpose": e.business_purpose || "", Attendees: e.attendees || "", Notes: e.notes || "", Receipt: e.no_receipt || !r ? "NONE" : receiptFileName(e, r), Status: e.status };
+  });
+}
+function receiptFileName(e, r) {
+  const ext = r.mime === "application/pdf" ? "pdf" : r.mime === "text/html" ? "html" : (r.mime || "").split("/")[1] || "jpg";
+  return `${e.date || "nodate"}_${String(e.vendor || "unknown").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").slice(0, 40)}_${(+e.total || 0).toFixed(2)}_${e.id.slice(0, 4)}.${ext}`;
+}
+function csvOf(objs) {
+  if (!objs.length) return "";
+  const cols = Object.keys(objs[0]); const q = (v) => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  return [cols.join(","), ...objs.map((o) => cols.map((c) => q(o[c])).join(","))].join("\n");
+}
+function download(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+async function buildWorkbook() {
+  await loadScript(LIBS.xlsx);
+  const rows = periodRows(), miles = periodMiles();
+  const wb = XLSX.utils.book_new();
+  const biz = S.settings.business || {};
+  const sc = schedC(rows, miles);
+  const summary = [[`${biz.name || "Jaggars Software Holdings LLC"} — business expenses`], [`Period: ${periodLabel()}`, `Prepared ${new Date().toLocaleDateString()}`, `Form: ${biz.tax_form || "Schedule C"}`], [], ["Sch C line", "Description", "Deductible", "Includes"], ...sc.map((x) => [x.line, x.label, Math.round(x.amt * 100) / 100, [...x.cats].join(", ")]), [], ["", "Total deductible", Math.round(sc.reduce((s, x) => s + x.amt, 0) * 100) / 100], ["", "Total spent (before limits)", Math.round(rows.reduce((s, e) => s + (+e.total || 0), 0) * 100) / 100], [], ["Notes"], ["Meals are included at 50%. Business-use % applied per item."], ["Equipment (line 13) is listed at cost; depreciation vs. section 179 is the preparer's call."], ["Each expense row names its receipt file in the receipts/ folder of the package."]];
+  const s1 = XLSX.utils.aoa_to_sheet(summary); s1["!cols"] = [{ wch: 11 }, { wch: 44 }, { wch: 14 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, s1, "Summary");
+  const er = exportRows(rows); const s2 = XLSX.utils.json_to_sheet(er.length ? er : [{ Note: "No filed expenses" }]);
+  s2["!cols"] = [{ wch: 11 }, { wch: 24 }, { wch: 34 }, { wch: 26 }, { wch: 9 }, { wch: 18 }, { wch: 16 }, { wch: 11 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 11 }, { wch: 30 }, { wch: 20 }, { wch: 24 }, { wch: 44 }, { wch: 8 }];
+  XLSX.utils.book_append_sheet(wb, s2, "Expenses");
+  for (const [by, name] of [["category", "By category"], ["vendor", "By vendor"], ["product", "By product"], ["month", "By month"], ["quarter", "By quarter"]]) {
+    const g = groupRows(rows, by).map((x) => ({ [name.replace("By ", "").replace(/^./, (c) => c.toUpperCase())]: x.label, Count: x.n, Spent: Math.round(x.total * 100) / 100, Deductible: Math.round(x.ded * 100) / 100 }));
+    const s = XLSX.utils.json_to_sheet(g.length ? g : [{ Note: "None" }]); s["!cols"] = [{ wch: 30 }, { wch: 8 }, { wch: 12 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, s, name);
+  }
+  const ml = miles.slice().sort((a, b) => a.date > b.date ? 1 : -1).map((m) => ({ Date: m.date, Miles: +m.miles, Purpose: m.purpose, From: m.from_place || "", To: m.to_place || "", Product: prodById(m.product_id)?.name || "", Rate: mileageRate(m.date), Deduction: Math.round(m.miles * mileageRate(m.date) * 100) / 100 }));
+  const s3 = XLSX.utils.json_to_sheet(ml.length ? ml : [{ Note: "No mileage logged" }]); s3["!cols"] = [{ wch: 11 }, { wch: 7 }, { wch: 40 }, { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 7 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, s3, "Mileage");
+  const gaps = [...rows.filter((e) => e.no_receipt).map((e) => ({ Date: e.date, Vendor: e.vendor, Amount: +e.total, Issue: "Entered without receipt image" })),
+    ...S.lines.filter((l) => !l.matched_expense_id && !l.ignored && yOf(l.date) === S.year).map((l) => ({ Date: l.date, Vendor: l.description, Amount: +l.amount, Issue: "Card charge with no matching expense (" + (cardById(l.payment_method_id)?.label || "card") + ")" }))];
+  const s4 = XLSX.utils.json_to_sheet(gaps.length ? gaps : [{ Note: "No gaps" }]); s4["!cols"] = [{ wch: 11 }, { wch: 34 }, { wch: 11 }, { wch: 54 }];
+  XLSX.utils.book_append_sheet(wb, s4, "Gaps");
+  return { wb, rows };
+}
+const fileStem = () => `JSH-expenses-${periodLabel().replace(/\s+/g, "-")}`;
+async function exportXlsx() { toast("Building workbook…"); const { wb } = await buildWorkbook(); XLSX.writeFile(wb, fileStem() + ".xlsx"); }
+async function exportZip() {
+  toast("Building CPA package…", 60000);
+  const { wb, rows } = await buildWorkbook(); await loadScript(LIBS.zip);
+  const zip = new JSZip(); zip.file(fileStem() + ".xlsx", XLSX.write(wb, { type: "array", bookType: "xlsx" }));
+  const folder = zip.folder("receipts"); let i = 0; const withRec = rows.filter((e) => !e.no_receipt && recById(e.receipt_id)?.storage_path);
+  const seen = new Set();
+  for (const e of withRec) {
+    const r = recById(e.receipt_id); i++;
+    if (seen.has(r.id)) continue;
+    if (i % 5 === 0) toast(`Collecting receipts ${i} of ${withRec.length}…`, 60000);
+    const { data, error } = await sb.storage.from("receipts").download(r.storage_path);
+    if (error) continue;
+    seen.add(r.id); folder.file(receiptFileName(e, r), data);
+  }
+  const blob = await zip.generateAsync({ type: "blob" });
+  download(blob, fileStem() + ".zip"); toast(`Package ready: ${rows.length} expenses, ${seen.size} receipts`);
+}
+
+/* ========= MILEAGE ========= */
+function viewMileage() {
+  const list = S.mileage.filter((m) => yOf(m.date) === S.year);
+  const miles = list.reduce((s, x) => s + +x.miles, 0), ded = list.reduce((s, x) => s + x.miles * mileageRate(x.date), 0);
+  const rates = (S.settings.mileage_rates || []).filter((r) => yOf(r.from) === S.year);
+  return `<div class="page-head"><div><h2>Mileage ${S.year}</h2><p class="num">${Math.round(miles).toLocaleString()} business miles · ${money(ded)} deduction${rates.length ? ` · IRS rate ${rates.map((r) => `${(r.rate * 100).toFixed(1)}¢ from ${fmtDate(r.from).replace(/, \d{4}$/, "")}`).join(", ")}` : ""}</p></div></div>
+  ${S.owner ? `<form class="card pad stack" id="mileForm" style="margin-bottom:12px"><div class="fgrid">
+    <label class="f"><span>Date</span><input class="in" type="date" name="date" value="${todayISO()}" required></label>
+    <label class="f"><span>Miles</span><input class="in num" type="number" step="0.1" inputmode="decimal" name="miles" required></label>
+    <label class="f full"><span>Business purpose</span><input class="in" name="purpose" required placeholder="e.g. Brije office, pilot kickoff"></label>
+    <label class="f"><span>From</span><input class="in" name="from_place"></label><label class="f"><span>To</span><input class="in" name="to_place"></label>
+    <label class="f"><span>Product</span><select class="in" name="product_id">${prodOpts(null, "None")}</select></label>
+    <div class="f" style="display:flex;align-items:flex-end"><button type="button" class="btn primary" style="width:100%" data-act="milesave">${IC.plus} Log trip</button></div></div></form>` : ""}
+  <div class="card">${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Purpose</th><th>Route</th><th class="r">Miles</th><th class="r">Deduction</th>${S.owner ? "<th></th>" : ""}</tr></thead><tbody>
+    ${list.map((m) => `<tr><td class="num" style="white-space:nowrap">${fmtDate(m.date)}</td><td>${esc(m.purpose)}${m.product_id ? `<div class="tiny muted">${esc(prodById(m.product_id)?.name || "")}</div>` : ""}</td><td class="small muted">${esc([m.from_place, m.to_place].filter(Boolean).join(" → "))}</td><td class="r num">${(+m.miles).toLocaleString()}</td><td class="r num">${money(m.miles * mileageRate(m.date))}</td>${S.owner ? `<td class="r"><button class="btn sm ghost danger" data-act="delmile" data-id="${m.id}">Delete</button></td>` : ""}</tr>`).join("")}
+  </tbody></table></div>` : `<div class="empty">${IC.car}<b>No trips logged for ${S.year}</b>Log business drives here. Commuting doesn't count.</div>`}</div>`;
+}
+
+/* ========= STATEMENTS ========= */
+function viewStatements() {
+  const yr = S.lines.filter((l) => yOf(l.date) === S.year);
+  const missing = yr.filter((l) => !l.matched_expense_id && !l.ignored).sort((a, b) => a.date > b.date ? -1 : 1);
+  const matched = yr.filter((l) => l.matched_expense_id).length, ignored = yr.filter((l) => l.ignored).length;
+  return `<div class="page-head"><div><h2>Card statements</h2><p>Import a statement CSV and every charge gets checked against your receipts. What's left is your missing-receipt list.</p></div></div>
+  ${S.owner ? `<div class="card pad stack" style="margin-bottom:12px"><div class="fgrid">
+    <label class="f"><span>Card or account</span><select class="in" id="stCard">${cardOpts(null).replace("Card / account…", "Choose…")}<option value="__new">+ Add a card…</option></select></label>
+    <label class="f"><span>Statement CSV (from your bank's website)</span><input class="in" type="file" accept=".csv,text/csv" id="stFile"></label></div>
+    <div class="row"><button class="btn primary" data-act="stimport">${IC.upload} Import & match</button><span class="small muted">Payments and credits are skipped automatically.</span></div></div>` : ""}
+  <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="card kpi"><div class="l">Matched</div><div class="v num">${matched}</div><div class="s">charges with a receipt</div></div>
+    <div class="card kpi"><div class="l">Missing</div><div class="v num" style="color:${missing.length ? "var(--bad)" : "inherit"}">${missing.length}</div><div class="s">${money(missing.reduce((s, l) => s + +l.amount, 0))}</div></div>
+    <div class="card kpi"><div class="l">Skipped</div><div class="v num">${ignored}</div><div class="s">payments, personal</div></div></div>
+  <div class="section-title"><h3>Charges without a receipt · ${S.year}</h3>${S.owner && yr.length ? `<button class="btn sm" data-act="rematch">Re-check matches</button>` : ""}</div>
+  <div class="card">${missing.length ? missing.map((l) => `<div class="q-item"><div class="num small" style="width:84px">${fmtDate(l.date)}</div><div class="q-name"><b>${esc(l.description)}</b><div class="small muted">${esc(cardById(l.payment_method_id)?.label || "")}</div></div><b class="num">${money(l.amount)}</b>
+    ${S.owner ? `<button class="btn sm" data-act="lineadd" data-id="${l.id}">Add w/o receipt</button><button class="btn sm ghost" data-act="lineignore" data-id="${l.id}">Personal</button>` : ""}</div>`).join("") : `<div class="empty">${IC.check}<b>${yr.length ? "Every charge has a receipt" : "No statements imported yet"}</b>${yr.length ? "" : "Download a CSV from your card's website and import it above."}</div>`}</div>
+  ${S.imports.length ? `<div class="section-title"><h3>Imports</h3></div><div class="card">${S.imports.map((i) => `<div class="q-item"><div class="q-name"><b>${esc(i.file_name || "Statement")}</b><div class="small muted">${esc(cardById(i.payment_method_id)?.label || "")} · ${new Date(i.created_at).toLocaleDateString()} · ${S.lines.filter((l) => l.import_id === i.id).length} lines</div></div>${S.owner ? `<button class="btn sm ghost danger" data-act="delimport" data-id="${i.id}">Remove</button>` : ""}</div>`).join("")}</div>` : ""}`;
+}
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(cell); cell = ""; } else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; } else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter((r) => r.some((x) => x.trim()));
+}
+function parseDate(s) {
+  s = String(s || "").trim(); let m;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+  if ((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/))) { const y = m[3].length === 2 ? "20" + m[3] : m[3]; return `${y}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`; }
+  const d = new Date(s); return isNaN(d) ? null : d.toLocaleDateString("en-CA");
+}
+const money2 = (s) => { const t = String(s || "").replace(/[$,\s]/g, ""); if (!t) return null; const neg = /^\(.*\)$/.test(t) || t.startsWith("-"); const v = parseFloat(t.replace(/[()\-]/g, "")); return isNaN(v) ? null : neg ? -v : v; };
+async function importStatement() {
+  let cardId = $("#stCard").value; const file = $("#stFile").files[0];
+  if (!cardId) return toast("Pick the card first");
+  if (!file) return toast("Choose the CSV file");
+  const rows = parseCSV(await file.text());
+  const hi = rows.findIndex((r) => r.some((c) => /date/i.test(c)));
+  if (hi < 0) return toast("Couldn't find a header row with a Date column");
+  const H = rows[hi].map((h) => h.trim().toLowerCase());
+  const find = (re, not) => H.findIndex((h) => re.test(h) && !(not && not.test(h)));
+  const di = [find(/trans.*date/), find(/^date$/), find(/date/, /post/), find(/date/)].find((x) => x >= 0);
+  const desc = [find(/desc/), find(/merchant|payee|name|details|memo/)].find((x) => x >= 0);
+  const ai = find(/^amount|amount$|amount \(/); const dbi = find(/debit|withdraw|charge/); const cri = find(/credit|deposit|payment/, /card/);
+  if (di < 0 || desc < 0 || (ai < 0 && dbi < 0)) return toast("Couldn't read the columns. Expected Date, Description, Amount.");
+  let parsed = rows.slice(hi + 1).map((r) => {
+    const date = parseDate(r[di]); let amt;
+    if (ai >= 0) amt = money2(r[ai]); else { const d = money2(r[dbi]), c = money2(r[cri]); amt = d ? Math.abs(d) : c ? -Math.abs(c) : null; }
+    return { date, description: (r[desc] || "").trim(), amount: amt };
+  }).filter((x) => x.date && x.amount != null);
+  if (ai >= 0) { const neg = parsed.filter((x) => x.amount < 0).length; if (neg > parsed.length / 2) parsed = parsed.map((x) => ({ ...x, amount: -x.amount })); }
+  if (!parsed.length) return toast("No transactions found in that file");
+  const { data: imp, error } = await sb.from("statement_imports").insert({ file_name: file.name, payment_method_id: cardId }).select().single();
+  if (error) return toast(error.message);
+  const recs = parsed.map((x) => {
+    const pay = x.amount <= 0 || /payment|autopay|thank you|online transfer|balance transfer/i.test(x.description);
+    return { import_id: imp.id, date: x.date, description: x.description, amount: Math.round(x.amount * 100) / 100, payment_method_id: cardId, ignored: pay, ignore_reason: pay ? "payment/credit" : null };
+  });
+  // skip lines already imported for this card
+  const have = new Set(S.lines.filter((l) => l.payment_method_id === cardId).map((l) => `${l.date}|${l.amount}|${l.description}`));
+  const fresh = recs.filter((r) => !have.has(`${r.date}|${r.amount}|${r.description}`));
+  for (let i = 0; i < fresh.length; i += 500) { const { error: e2 } = await sb.from("statement_lines").insert(fresh.slice(i, i + 500)); if (e2) return toast(e2.message); }
+  await loadAll(); const n = await runMatching(true); render();
+  toast(`Imported ${fresh.length} charges${recs.length - fresh.length ? ` (${recs.length - fresh.length} already there)` : ""} · ${n} matched`);
+}
+async function runMatching(quiet) {
+  if (!S.owner || !S.lines.length) return 0;
+  const taken = new Set(S.lines.filter((l) => l.matched_expense_id).map((l) => l.matched_expense_id));
+  const updates = [];
+  for (const l of S.lines) {
+    if (l.matched_expense_id || l.ignored) continue;
+    const card = cardById(l.payment_method_id);
+    const cands = S.expenses.filter((e) => !taken.has(e.id) && e.date && e.total != null && Math.abs(+e.total - +l.amount) < 0.011 && dayDiff(e.date, l.date) <= 5);
+    if (!cands.length) continue;
+    cands.sort((a, b) => ((card?.last4 && a.card_last4 === card.last4 ? -10 : 0) + dayDiff(a.date, l.date)) - ((card?.last4 && b.card_last4 === card.last4 ? -10 : 0) + dayDiff(b.date, l.date)));
+    const best = cands[0]; taken.add(best.id); l.matched_expense_id = best.id; updates.push([l.id, best.id, best]);
+  }
+  for (let i = 0; i < updates.length; i += 15) await Promise.all(updates.slice(i, i + 15).map(([lid, eid, e]) => Promise.all([
+    sb.from("statement_lines").update({ matched_expense_id: eid }).eq("id", lid),
+    !e.payment_method_id ? sb.from("expenses").update({ payment_method_id: S.lines.find((x) => x.id === lid).payment_method_id }).eq("id", eid) : null,
+  ])));
+  if (!quiet) toast(`${updates.length} new matches`);
+  return updates.length;
+}
+function guessFromHistory(desc) {
+  const k = vkey(desc).slice(0, 6); if (!k) return {};
+  const hit = S.expenses.find((e) => e.status === "filed" && e.vendor_key && (e.vendor_key.startsWith(k) || k.startsWith(e.vendor_key.slice(0, 6))));
+  return hit ? { vendor: hit.vendor, category_id: hit.category_id, product_id: hit.product_id } : {};
+}
+function cleanDesc(d) { return String(d || "").replace(/\s{2,}.*$/, "").replace(/[*#]\S*/g, "").replace(/\b\d{5,}\b/g, "").replace(/\s+/g, " ").trim().replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\B\w+/g, (w) => w.toLowerCase()); }
+
+/* ========= MORE ========= */
+function viewMore() {
+  const items = S.owner ? [["mileage", IC.car, "Mileage", "Log business driving at the IRS rate"], ["statements", IC.card, "Card statements", "Import CSVs, find charges with no receipt"], ["settings", IC.gear, "Settings", "Email & text intake, categories, cards, CPA access"]] : [["mileage", IC.car, "Mileage", "Business driving log"], ["statements", IC.card, "Card statements", "Charges matched to receipts"]];
+  return `<div class="page-head"><div><h2>More</h2></div></div><div class="card more-list">${items.map(([v, ic, t, s]) => `<button data-go="${v}">${ic}<div><b>${t}</b><span>${s}</span></div></button>`).join("")}<button data-act="signout">${IC.out}<div><b>Sign out</b><span>${esc(S.session?.user?.email || "")}</span></div></button></div>`;
+}
+
+/* ========= SETTINGS ========= */
+function viewSettings() {
+  const biz = S.settings.business || {}, ai = S.settings.ai || {}, intake = S.settings.intake || {};
+  const emailHook = `${API}/inbound-email?token=${intake.token || ""}`, smsHook = `${API}/inbound-sms?token=${intake.token || ""}`;
+  return `<div class="page-head"><div><h2>Settings</h2></div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+  <div class="card pad stack"><h3>Receipt reader</h3>
+    <p class="small muted">Reads receipts with Claude using your Anthropic API key. The key is stored encrypted in the database vault and never sent to the browser.</p>
+    <div class="row"><span id="keyStatus" class="chip">Checking…</span></div>
+    <label class="f"><span>Anthropic API key</span><input class="in" type="password" id="akey" placeholder="sk-ant-…" autocomplete="off"></label>
+    <div class="fgrid"><label class="f"><span>Model</span><input class="in" id="aiModel" value="${esc(ai.model || "claude-sonnet-5-5")}"></label>
+    <label class="f"><span>Auto-file when confidence ≥</span><input class="in num" type="number" min="0.5" max="1" step="0.05" id="aiConf" value="${ai.auto_file_confidence ?? 0.9}"></label></div>
+    <div><button class="btn primary" data-act="saveai">Save</button></div></div>
+
+  <div class="card pad stack"><h3>Email intake</h3>
+    <p class="small muted">Use an inbound-email service (Postmark Inbound, SendGrid Inbound Parse or Mailgun Routes). It gives you an address; point its webhook here. Only the senders below are accepted.</p>
+    <label class="f"><span>Webhook URL (paste into the service)</span><div class="code">${esc(emailHook)}</div></label>
+    <label class="f"><span>Receipt address (shown on the Add screen)</span><input class="in" id="inAddr" value="${esc(intake.address || "")}" placeholder="receipts@…"></label>
+    <label class="f"><span>Accept forwards from (comma separated)</span><input class="in" id="inEmails" value="${esc((intake.allowed_emails || []).join(", "))}"></label>
+    <div><button class="btn primary" data-act="saveintake">Save</button></div></div>
+
+  <div class="card pad stack"><h3>Text intake (Twilio)</h3>
+    <p class="small muted">In Twilio, set your number's “A message comes in” webhook (HTTP POST) to the URL below. The app texts you back what it filed.</p>
+    <label class="f"><span>Webhook URL</span><div class="code">${esc(smsHook)}</div></label>
+    <div class="row"><span id="twStatus" class="chip">Checking…</span></div>
+    <div class="fgrid"><label class="f"><span>Account SID</span><input class="in" id="twSid" placeholder="AC…" autocomplete="off"></label><label class="f"><span>Auth token</span><input class="in" type="password" id="twTok" autocomplete="off"></label></div>
+    <label class="f"><span>Twilio number (shown on the Add screen)</span><input class="in" id="inSms" value="${esc(intake.sms_number || "")}" placeholder="+1…"></label>
+    <label class="f"><span>Accept texts from (your mobile numbers, comma separated)</span><input class="in" id="inPhones" value="${esc((intake.allowed_phones || []).join(", "))}"></label>
+    <div><button class="btn primary" data-act="savetwilio">Save</button></div></div>
+
+  <div class="card pad stack"><h3>Business</h3>
+    <label class="f"><span>Legal name</span><input class="in" id="bizName" value="${esc(biz.name || "")}"></label>
+    <div class="fgrid"><label class="f"><span>Tax form</span><input class="in" id="bizForm" value="${esc(biz.tax_form || "Schedule C")}"></label><label class="f"><span>Books start</span><input class="in" type="date" id="bizStart" value="${esc(biz.start_date || "")}"></label></div>
+    <label class="f"><span>IRS mileage rates (from date = cents per mile, one per line)</span><textarea class="in" id="rates" style="font-family:var(--mono);font-size:13px">${esc((S.settings.mileage_rates || []).map((r) => `${r.from} = ${(r.rate * 100).toFixed(1)}`).join("\n"))}</textarea></label>
+    <div><button class="btn primary" data-act="savebiz">Save</button></div></div>
+  </div>
+
+  <div class="section-title"><h3>Accountant access</h3></div>
+  <div class="card pad stack" id="members"><div class="spin"></div></div>
+
+  <div class="section-title"><h3>Cards & accounts</h3><button class="btn sm" data-act="addcard">${IC.plus} Add</button></div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Last 4</th><th>Active</th><th></th></tr></thead><tbody>
+    ${S.cards.map((c) => `<tr data-card="${c.id}"><td><input class="in" data-k="label" value="${esc(c.label)}"></td><td style="width:110px"><input class="in num" data-k="last4" maxlength="4" value="${esc(c.last4 || "")}"></td><td><input type="checkbox" data-k="active" ${c.active ? "checked" : ""}></td><td class="r"><button class="btn sm" data-act="savecard" data-id="${c.id}">Save</button></td></tr>`).join("") || `<tr><td colspan="4" class="muted">Add the cards you use for business. Receipts showing the last 4 digits get linked automatically.</td></tr>`}
+  </tbody></table></div></div>
+
+  <div class="section-title"><h3>Products & projects</h3><button class="btn sm" data-act="addprod">${IC.plus} Add</button></div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Color</th><th>Active</th><th></th></tr></thead><tbody>
+    ${S.prods.map((p) => `<tr data-prod="${p.id}"><td><input class="in" data-k="name" value="${esc(p.name)}"></td><td style="width:80px"><input type="color" data-k="color" value="${esc(p.color || "#64748b")}"></td><td><input type="checkbox" data-k="active" ${p.active ? "checked" : ""}></td><td class="r"><button class="btn sm" data-act="saveprod" data-id="${p.id}">Save</button></td></tr>`).join("")}
+  </tbody></table></div></div>
+
+  <div class="section-title"><h3>Categories</h3><button class="btn sm" data-act="addcat">${IC.plus} Add</button></div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Sch C line</th><th>Deductible %</th><th>What goes here (guides the reader)</th><th>Active</th><th></th></tr></thead><tbody>
+    ${S.cats.map((c) => `<tr data-cat="${c.id}"><td style="min-width:200px"><input class="in" data-k="name" value="${esc(c.name)}"></td><td style="width:90px"><input class="in" data-k="tax_line" value="${esc(c.tax_line || "")}"></td><td style="width:100px"><input class="in num" type="number" data-k="deductible_pct" value="${c.deductible_pct}"></td><td style="min-width:260px"><input class="in" data-k="hint" value="${esc(c.hint || "")}"></td><td><input type="checkbox" data-k="active" ${c.active ? "checked" : ""}></td><td class="r"><button class="btn sm" data-act="savecat" data-id="${c.id}">Save</button></td></tr>`).join("")}
+  </tbody></table></div></div>`;
+}
+async function wireSettings() {
+  const { data } = await sb.rpc("secret_status");
+  const k = $("#keyStatus"), t = $("#twStatus");
+  if (k) { k.className = "chip " + (data?.anthropic_api_key ? "ok" : "bad"); k.textContent = data?.anthropic_api_key ? "API key saved" : "No API key yet. Receipts can't be read until you add one."; }
+  if (t) { t.className = "chip " + (data?.twilio ? "ok" : ""); t.textContent = data?.twilio ? "Twilio connected" : "Not connected"; }
+  renderMembers();
+}
+async function renderMembers() {
+  const { data } = await sb.from("members").select("*").order("created_at"); S.members = data || [];
+  const el = $("#members"); if (!el) return;
+  const cpas = S.members.filter((m) => m.role === "cpa");
+  el.innerHTML = `<p class="small muted">Your CPA gets a read-only login: reports, expenses, receipts and exports. They can't change anything.</p>
+    ${cpas.map((m) => `<div class="q-item" style="padding-left:0;padding-right:0"><div class="q-name"><b>${esc(m.name || m.email)}</b><div class="small muted">${esc(m.email)} · read only</div></div><button class="btn sm" data-act="cpapw" data-id="${m.id}">New password</button><button class="btn sm ghost danger" data-act="cparm" data-id="${m.id}">Remove</button></div>`).join("")}
+    <form id="cpaForm" class="fgrid r3"><label class="f"><span>Name</span><input class="in" name="name" placeholder="CPA name"></label><label class="f"><span>Email</span><input class="in" name="email" type="email" required></label><label class="f"><span>Temporary password</span><input class="in" name="password" required minlength="10" value="${genPw()}"></label><div class="full"><button class="btn primary">${IC.plus} Give access</button> <span class="small muted">Send them the site link, their email and this password.</span></div></form>`;
+  $("#cpaForm").onsubmit = async (ev) => { ev.preventDefault(); try { await api("members", { action: "create", ...Object.fromEntries(new FormData(ev.target)) }); toast("Access created"); renderMembers(); } catch (e) { toast(e.message); } };
+}
+function genPw() { const a = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; return [...crypto.getRandomValues(new Uint8Array(14))].map((b) => a[b % a.length]).join(""); }
+async function saveSetting(key, value) { const { error } = await sb.from("settings").upsert({ key, value }); if (error) throw error; S.settings[key] = value; }
+
+/* ========= actions ========= */
+async function updateExp(id, patch) { const { error } = await sb.from("expenses").update(patch).eq("id", id); if (error) throw error; Object.assign(expById(id) || {}, patch); }
+function readyToFile(e) { return e.total != null && e.date && e.category_id; }
+document.addEventListener("click", async (ev) => {
+  const g = ev.target.closest("[data-go]"); if (g) { ev.preventDefault(); go(g.dataset.go); return; }
+  const rp = ev.target.closest("[data-rp]"); if (rp) { S.rp.period = S.rp.period === rp.dataset.rp && rp.dataset.rp !== "year" ? "year" : rp.dataset.rp; render(); return; }
+  const rg = ev.target.closest("[data-rg]"); if (rg) { S.rp.group = rg.dataset.rg; render(); return; }
+  const dr = ev.target.closest("[data-drill]"); if (dr) {
+    const f = JSON.parse(dr.dataset.drill); const p = S.rp.period;
+    S.ef = { q: "", month: p === "year" ? "" : p[0] === "Q" ? p : p.slice(1), cat: "", prod: "", vendor: "", card: "", status: "filed", ...f };
+    go("expenses"); return;
+  }
+  const a = ev.target.closest("[data-act]"); if (!a) return;
+  const act = a.dataset.act, id = a.dataset.id;
+  if (act === "closebg" && ev.target !== a) return;
+  if (a.tagName === "A") ev.preventDefault();
+  try {
+    switch (act) {
+      case "close": case "closebg": closeModal(); break;
+      case "signout": await sb.auth.signOut(); break;
+      case "edit": openEditor(id); break;
+      case "manual": openManual(); break;
+      case "file": {
+        const row = a.closest("[data-row]"); const patch = {};
+        for (const el of $$("[data-f]", row)) patch[el.dataset.f] = el.dataset.f === "total" ? num(el.value) : (el.value || null);
+        const e = { ...expById(id), ...patch };
+        if (!readyToFile(e)) { toast("Needs an amount, date and category"); break; }
+        patch.status = "filed"; await updateExp(id, patch); toast(`Filed ${e.vendor || ""} ${money(e.total)}`); render(); break;
+      }
+      case "fileready": {
+        const ready = S.expenses.filter((e) => e.status === "review" && readyToFile(e) && !e.duplicate_of);
+        await Promise.all(ready.map((e) => updateExp(e.id, { status: "filed" }))); toast(`Filed ${ready.length}`); render(); break;
+      }
+      case "delexp": if (!confirm("Delete this expense?")) break; { const e = expById(id); await sb.from("statement_lines").update({ matched_expense_id: null }).eq("matched_expense_id", id); await sb.from("expenses").delete().eq("id", id); if (e?.receipt_id && !S.expenses.some((x) => x.id !== id && x.receipt_id === e.receipt_id)) await deleteReceipt(e.receipt_id); closeModal(); await loadAll(); render(); toast("Deleted"); } break;
+      case "deldup": { const e = expById(id); await sb.from("expenses").delete().eq("id", id); if (e?.receipt_id && !S.expenses.some((x) => x.id !== id && x.receipt_id === e.receipt_id)) await deleteReceipt(e.receipt_id); await loadAll(); render(); toast("Duplicate removed"); } break;
+      case "notdup": { const e = expById(id); await updateExp(id, { duplicate_of: null, ai_flags: (e.ai_flags || []).filter((f) => !/duplicate/i.test(f)) }); render(); } break;
+      case "edsave": {
+        const f = Object.fromEntries(new FormData($("#edForm")));
+        const patch = { vendor: f.vendor || null, date: f.date || null, total: num(f.total), subtotal: num(f.subtotal), tax: num(f.tax), tip: num(f.tip), category_id: f.category_id || null, product_id: f.product_id || null, payment_method_id: f.payment_method_id || null, description: f.description || null, business_pct: num(f.business_pct) ?? 100, business_purpose: f.business_purpose || null, attendees: f.attendees || null, notes: f.notes || null };
+        if (a.dataset.file === "1") { if (!readyToFile(patch)) { toast("Needs an amount, date and category"); break; } patch.status = "filed"; } else patch.status = "review";
+        await updateExp(id, patch); closeModal(); render(); toast(patch.status === "filed" ? "Saved and filed" : "Saved");
+      } break;
+      case "reread": { const e = expById(id); a.disabled = true; a.textContent = "Reading…"; const out = await api("extract", { receipt_id: e.receipt_id, replace: true }); await loadAll(); closeModal(); if (out.expenses?.[0]) openEditor(out.expenses[0].id); render(); toast("Re-read done"); } break;
+      case "retry": { a.disabled = true; a.textContent = "Reading…"; try { await api("extract", { receipt_id: id }); toast("Read it"); } catch (e) { toast(e.message, 5000); } await loadAll(); render(); } break;
+      case "delrec": if (!confirm("Delete this receipt file?")) break; await deleteReceipt(id); await loadAll(); render(); break;
+      case "viewrec": { const r = recById(id); $("#modal").innerHTML = `<div class="modal-bg" data-act="closebg"><div class="modal"><div class="modal-head"><h3>${esc(r.email_subject || r.original_name || "Receipt")}</h3><button class="btn ghost sm" data-act="close">${IC.x}</button></div><div class="modal-body ed-prev" style="min-height:60vh"><div class="pv" id="pv"><div class="spin"></div></div></div></div></div>`; previewReceipt(r, $("#pv")); } break;
+      case "mansave": {
+        const form = $("#manForm"); if (!form.reportValidity()) break; const f = Object.fromEntries(new FormData(form));
+        const { data, error } = await sb.from("expenses").insert({ vendor: f.vendor, date: f.date, total: num(f.total), category_id: f.category_id, product_id: f.product_id || null, payment_method_id: f.payment_method_id || null, business_purpose: f.business_purpose || null, no_receipt: true, status: "filed", ai_flags: [] }).select().single();
+        if (error) throw error;
+        if (form.dataset.line) await sb.from("statement_lines").update({ matched_expense_id: data.id }).eq("id", form.dataset.line);
+        closeModal(); await loadAll(); render(); toast("Added");
+      } break;
+      case "csv": { const rows = filteredExpenses(); download(new Blob([csvOf(exportRows(rows))], { type: "text/csv" }), `JSH-expenses-${S.year}.csv`); } break;
+      case "xlsx": await exportXlsx(); break;
+      case "zip": await exportZip(); break;
+      case "clearef": S.ef = { q: "", month: "", cat: "", prod: "", vendor: "", card: "", status: "filed" }; render(); break;
+      case "milesave": {
+        ev.preventDefault(); const form = $("#mileForm"); if (!form.reportValidity()) break; const f = Object.fromEntries(new FormData(form));
+        const { error } = await sb.from("mileage").insert({ date: f.date, miles: num(f.miles), purpose: f.purpose, from_place: f.from_place || null, to_place: f.to_place || null, product_id: f.product_id || null });
+        if (error) throw error; await loadAll(); render(); toast("Trip logged");
+      } break;
+      case "delmile": if (!confirm("Delete this trip?")) break; await sb.from("mileage").delete().eq("id", id); await loadAll(); render(); break;
+      case "stimport": a.disabled = true; await importStatement(); a.disabled = false; break;
+      case "rematch": { const n = await runMatching(); await loadAll(); render(); } break;
+      case "lineadd": {
+        const l = S.lines.find((x) => x.id === id); const gs = guessFromHistory(l.description);
+        openManual({ vendor: gs.vendor || cleanDesc(l.description), date: l.date, total: +l.amount, category_id: gs.category_id, product_id: gs.product_id, payment_method_id: l.payment_method_id });
+        $("#manForm").dataset.line = id;
+      } break;
+      case "lineignore": await sb.from("statement_lines").update({ ignored: true, ignore_reason: "personal" }).eq("id", id); await loadAll(); render(); break;
+      case "delimport": if (!confirm("Remove this import and its lines?")) break; await sb.from("statement_imports").delete().eq("id", id); await loadAll(); render(); break;
+      case "saveai": {
+        const key = $("#akey").value.trim(); if (key) { const { error } = await sb.rpc("set_secret", { p_name: "anthropic_api_key", p_value: key }); if (error) throw error; $("#akey").value = ""; }
+        await saveSetting("ai", { ...(S.settings.ai || {}), model: $("#aiModel").value.trim() || "claude-sonnet-5-5", auto_file_confidence: +$("#aiConf").value || 0.9 });
+        toast("Saved"); wireSettings();
+      } break;
+      case "saveintake": await saveSetting("intake", { ...(S.settings.intake || {}), address: $("#inAddr").value.trim(), allowed_emails: $("#inEmails").value.split(/[,\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean) }); toast("Saved"); break;
+      case "savetwilio": {
+        const sid = $("#twSid").value.trim(), tok = $("#twTok").value.trim();
+        if (sid) { const { error } = await sb.rpc("set_secret", { p_name: "twilio_account_sid", p_value: sid }); if (error) throw error; }
+        if (tok) { const { error } = await sb.rpc("set_secret", { p_name: "twilio_auth_token", p_value: tok }); if (error) throw error; }
+        await saveSetting("intake", { ...(S.settings.intake || {}), sms_number: $("#inSms").value.trim(), allowed_phones: $("#inPhones").value.split(/[,]+/).map((s) => s.trim()).filter(Boolean) });
+        $("#twSid").value = ""; $("#twTok").value = ""; toast("Saved"); wireSettings();
+      } break;
+      case "savebiz": {
+        const rates = $("#rates").value.split("\n").map((l) => l.match(/(\d{4}-\d{2}-\d{2})\s*=\s*([\d.]+)/)).filter(Boolean).map((m) => ({ from: m[1], rate: +m[2] / 100 }));
+        await saveSetting("business", { ...(S.settings.business || {}), name: $("#bizName").value.trim(), tax_form: $("#bizForm").value.trim(), start_date: $("#bizStart").value });
+        await saveSetting("mileage_rates", rates); toast("Saved");
+      } break;
+      case "addcard": { const { error } = await sb.from("payment_methods").insert({ label: "New card", last4: null }); if (error) throw error; await loadAll(); render(); } break;
+      case "savecard": { const tr = a.closest("tr"); const v = (k) => tr.querySelector(`[data-k="${k}"]`); await sb.from("payment_methods").update({ label: v("label").value, last4: v("last4").value.replace(/\D/g, "") || null, active: v("active").checked }).eq("id", id); await loadAll(); toast("Saved"); } break;
+      case "addprod": { const { error } = await sb.from("products").insert({ name: "New product " + (S.prods.length + 1), sort: 100 + S.prods.length }); if (error) throw error; await loadAll(); render(); } break;
+      case "saveprod": { const tr = a.closest("tr"); const v = (k) => tr.querySelector(`[data-k="${k}"]`); const { error } = await sb.from("products").update({ name: v("name").value, color: v("color").value, active: v("active").checked }).eq("id", id); if (error) throw error; await loadAll(); toast("Saved"); } break;
+      case "addcat": { const { error } = await sb.from("categories").insert({ name: "New category " + (S.cats.length + 1), tax_line: "27a", sort: 500 + S.cats.length }); if (error) throw error; await loadAll(); render(); } break;
+      case "savecat": { const tr = a.closest("tr"); const v = (k) => tr.querySelector(`[data-k="${k}"]`); const { error } = await sb.from("categories").update({ name: v("name").value, tax_line: v("tax_line").value || null, deductible_pct: +v("deductible_pct").value, hint: v("hint").value, active: v("active").checked }).eq("id", id); if (error) throw error; await loadAll(); toast("Saved"); } break;
+      case "cparm": if (!confirm("Remove this person's access?")) break; await api("members", { action: "remove", member_id: id }); renderMembers(); toast("Removed"); break;
+      case "cpapw": { const pw = genPw(); await api("members", { action: "password", member_id: id, password: pw }); prompt("New password (copy it and send it to them):", pw); } break;
+    }
+  } catch (e) { console.error(e); toast(e.message || "Something went wrong", 5000); }
+});
+document.addEventListener("change", async (ev) => {
+  const el = ev.target;
+  if (el.dataset.ef) { S.ef[el.dataset.ef] = el.value; render(); return; }
+  if (el.id === "stCard" && el.value === "__new") {
+    const label = prompt("Card name (e.g. Amex Business)"); if (!label) { el.value = ""; return; }
+    const last4 = (prompt("Last 4 digits (optional)") || "").replace(/\D/g, "").slice(-4) || null;
+    const { data, error } = await sb.from("payment_methods").insert({ label, last4 }).select().single();
+    if (error) return toast(error.message);
+    await loadAll(); render(); $("#stCard").value = data.id;
+  }
+});
+document.addEventListener("input", (ev) => { const el = ev.target; if (el.dataset.ef === "q") { S.ef.q = el.value; clearTimeout(el._t); el._t = setTimeout(() => { const pos = el.selectionStart; render(); const n = $('[data-ef="q"]'); n.focus(); n.setSelectionRange(pos, pos); }, 250); } });
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && $(".modal-bg")) closeModal(); });
+async function deleteReceipt(rid) { const r = recById(rid); if (r?.storage_path) await sb.storage.from("receipts").remove([r.storage_path]); await sb.from("receipts").delete().eq("id", rid); }
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/expenses/sw.js", { scope: "/expenses/" }).catch(() => {});
+boot().catch((e) => { console.error(e); $("#main").innerHTML = `<div class="auth"><div class="card stack"><h2>Couldn't load</h2><p class="muted">${esc(e.message)}</p><button class="btn" onclick="location.reload()">Try again</button></div></div>`; });
+</script>
+</body>
+</html>
