@@ -1138,6 +1138,8 @@ async function wireSettings() {
   const k = $("#keyStatus"), t = $("#twStatus");
   if (k) { k.className = "chip " + (data?.anthropic_api_key ? "ok" : "bad"); k.textContent = data?.anthropic_api_key ? "API key saved" : "No API key yet. Receipts can't be read until you add one."; }
   if (t) { t.className = "chip " + (data?.twilio ? "ok" : ""); t.textContent = data?.twilio ? "Twilio connected" : "Not connected"; }
+  const ph = (id, on) => { const el = $(id); if (el && on) el.placeholder = "Saved — paste a new key to replace it"; };
+  ph("#akey", data?.anthropic_api_key); ph("#rsKey", data?.resend); ph("#twTok", data?.twilio);
   const rs = $("#rsStatus"); if (rs) { rs.className = "chip " + (data?.resend ? "ok" : ""); rs.textContent = data?.resend ? "Resend key saved" : "Not connected"; }
   renderMembers();
 }
