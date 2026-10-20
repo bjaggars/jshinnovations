@@ -644,7 +644,7 @@ function viewCapture() {
   ${q.length ? `<div class="section-title"><h3>This batch</h3><span class="small muted">${q.filter((x) => x.state === "done").length} of ${q.length} done</span></div><div class="card" id="queue">${q.map(qItem).join("")}</div>` : ""}
   <div class="section-title"><h3>Other ways in</h3></div>
   <div class="card pad">
-    <div class="intake-line"><div class="intake-ico">${IC.mail}</div><div style="flex:1"><b>Forward email receipts</b><div class="small muted">${intake.address ? `Forward to <b>${esc(intake.address)}</b>. Set an Outlook or Gmail rule to forward bills from Netlify, Supabase, Anthropic, Apple and others automatically.` : `Needs an inbound email address. <a href="#" data-go="settings">Set it up in Settings</a>.`}</div></div></div>
+    <div class="intake-line"><div class="intake-ico">${IC.mail}</div><div style="flex:1"><b>Forward email receipts</b><div class="small muted">${intake.address ? `Send or forward to <b>${esc(intake.address)}</b>. Better yet, make it the billing email at Netlify, Supabase, Anthropic and Apple so bills arrive on their own.` : `Needs an inbound email address. <a href="#" data-go="settings">Set it up in Settings</a>.`}</div></div></div>
     <div class="intake-line"><div class="intake-ico">${IC.sms}</div><div style="flex:1"><b>Text a photo</b><div class="small muted">${intake.sms_number ? `Text receipt photos to <b>${esc(intake.sms_number)}</b>. You can also text “parking 12.50 Tampa” for things with no receipt.` : `Uses your Twilio number. <a href="#" data-go="settings">Set it up in Settings</a>.`}</div></div></div>
     <div class="intake-line"><div class="intake-ico">${IC.plus}</div><div style="flex:1"><b>No receipt at all</b><div class="small muted">Enter it by hand. It's marked “no receipt” so your CPA knows.</div></div><button class="btn sm" data-act="manual">Add manually</button></div>
     <div class="intake-line"><div class="intake-ico">${IC.car}</div><div style="flex:1"><b>Business driving</b><div class="small muted">Log miles at the IRS rate.</div></div><button class="btn sm" data-go="mileage">Log miles</button></div>
@@ -1088,18 +1088,15 @@ function viewSettings() {
     <label class="f"><span>Auto-file when confidence ≥</span><input class="in num" type="number" min="0.5" max="1" step="0.05" id="aiConf" value="${ai.auto_file_confidence ?? 0.9}"></label></div>
     <div><button class="btn primary" data-act="saveai">Save</button></div></div>
 
-  <div class="card pad stack"><h3>Email intake (Resend)</h3>
+  <div class="card pad stack"><h3>Email intake</h3>
     <div class="row"><span id="rsStatus" class="chip">Checking…</span></div>
-    <ol class="small muted" style="margin:0;padding-left:18px;line-height:1.6">
-      <li>In Resend, open <b>Emails → Receiving</b>, then the ⋯ menu → <b>Receiving address</b>. Any name at that address works, e.g. <b>receipts@…resend.app</b>. Paste it below.</li>
-      <li>In Resend, open <b>Webhooks → Add endpoint</b>, paste the URL below and tick only <b>email.received</b>.</li>
-      <li>In Resend, open <b>API Keys</b>, create a key with full access, and paste it below. It's stored encrypted.</li>
-    </ol>
-    <label class="f"><span>Webhook URL</span><div class="code">${esc(emailHook)}</div></label>
+    <p class="small muted" style="margin:0">Mail to your receipt address is forwarded by Microsoft 365 to Resend, which hands it to this app.</p>
+    <label class="f"><span>Receipt address (what you send to)</span><input class="in" id="inAddr" value="${esc(intake.address || "")}" placeholder="receipts@jshinnovations.com"></label>
+    <label class="f"><span>Resend receiving address (M365 forwards here)</span><input class="in" id="inRsAddr" value="${esc(intake.resend_address || "")}" placeholder="receipts@….resend.app"></label>
+    <label class="f"><span>Resend webhook URL (Resend → Webhooks, event email.received)</span><div class="code">${esc(emailHook)}</div></label>
     <label class="f"><span>Resend API key</span><input class="in" type="password" id="rsKey" placeholder="re_…" autocomplete="off"></label>
-    <label class="f"><span>Receipt address (shown on the Add screen)</span><input class="in" id="inAddr" value="${esc(intake.address || "")}" placeholder="receipts@….resend.app"></label>
-    <label class="f"><span>Accept forwards from (comma separated)</span><input class="in" id="inEmails" value="${esc((intake.allowed_emails || []).join(", "))}"></label>
-    <p class="tiny muted" style="margin:0">Only these senders are accepted, so add every address you'll forward from.</p>
+    <label class="f"><span>Trusted senders (comma separated)</span><input class="in" id="inEmails" value="${esc((intake.allowed_emails || []).join(", "))}"></label>
+    <p class="tiny muted" style="margin:0">Mail from trusted senders files itself when the reader is sure. Anyone else waits in your Inbox until you file one from them; after that, they're trusted too.</p>
     <div><button class="btn primary" data-act="saveintake">Save</button></div></div>
 
   <div class="card pad stack"><h3>Text intake (Twilio)</h3>
@@ -1233,7 +1230,7 @@ document.addEventListener("click", async (ev) => {
         await saveSetting("ai", { ...(S.settings.ai || {}), model: $("#aiModel").value.trim() || "claude-sonnet-5-5", auto_file_confidence: +$("#aiConf").value || 0.9 });
         toast("Saved"); wireSettings();
       } break;
-      case "saveintake": { const rk = $("#rsKey").value.trim(); if (rk) { const { error } = await sb.rpc("set_secret", { p_name: "resend_api_key", p_value: rk }); if (error) throw error; $("#rsKey").value = ""; } } await saveSetting("intake", { ...(S.settings.intake || {}), address: $("#inAddr").value.trim(), allowed_emails: $("#inEmails").value.split(/[,\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean) }); toast("Saved"); wireSettings(); break;
+      case "saveintake": { const rk = $("#rsKey").value.trim(); if (rk) { const { error } = await sb.rpc("set_secret", { p_name: "resend_api_key", p_value: rk }); if (error) throw error; $("#rsKey").value = ""; } } await saveSetting("intake", { ...(S.settings.intake || {}), address: $("#inAddr").value.trim(), resend_address: $("#inRsAddr").value.trim(), allowed_emails: $("#inEmails").value.split(/[,\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean) }); toast("Saved"); wireSettings(); break;
       case "savetwilio": {
         const sid = $("#twSid").value.trim(), tok = $("#twTok").value.trim();
         if (sid) { const { error } = await sb.rpc("set_secret", { p_name: "twilio_account_sid", p_value: sid }); if (error) throw error; }
