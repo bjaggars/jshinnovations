@@ -285,7 +285,8 @@ textarea.in{min-height:70px;resize:vertical}
 const SB_URL = "https://cfhualtyvccfjxenvkud.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmaHVhbHR5dmNjZmp4ZW52a3VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTk2NjEsImV4cCI6MjEwODA5NTY2MX0.WOnjua0fxslAfkuHz_O8yKndfq86YDH4KLlqjqtdics";
 const API = SB_URL + "/functions/v1/api";
-const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "jsh-expenses-auth", lock: async (_name, _timeout, fn) => await fn() } });
+const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
 
 /* ========= tiny helpers ========= */
 const $ = (s, r = document) => r.querySelector(s);
@@ -380,7 +381,7 @@ let reloadT = null;
 function softReload() { clearTimeout(reloadT); reloadT = setTimeout(async () => { try { await loadAll(); if (!$(".modal-bg")) render(); else renderNav(); } catch (e) { console.warn(e); } }, 600); }
 
 async function api(path, body) {
-  const { data: { session } } = await sb.auth.getSession();
+  let session = null; try { session = (await withTimeout(sb.auth.getSession(), 5000, "t")).data.session; } catch {}
   const res = await fetch(API + "/" + path, {
     method: body ? "POST" : "GET",
     headers: { "Content-Type": "application/json", apikey: SB_KEY, Authorization: "Bearer " + (session?.access_token || SB_KEY) },
@@ -440,8 +441,8 @@ async function renderAuth() {
     ev.preventDefault();
     const f = Object.fromEntries(new FormData(ev.target)); const btn = ev.target.querySelector("button"); btn.disabled = true; $("#authErr").textContent = "";
     try {
-      if (needsSetup) await api("setup", f);
-      const { error } = await sb.auth.signInWithPassword({ email: f.email.trim(), password: f.password });
+      if (needsSetup) await withTimeout(api("setup", f), 20000, "Setup timed out. Reload and try signing in.");
+      const { error } = await withTimeout(sb.auth.signInWithPassword({ email: f.email.trim(), password: f.password }), 20000, "Sign-in timed out. Check your connection and try again.");
       if (error) throw error;
       location.reload();
     } catch (e) { $("#authErr").textContent = e.message; btn.disabled = false; }
