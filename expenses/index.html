@@ -408,7 +408,8 @@ async function hydrateThumbs(root = document) {
 
 /* ========= boot / auth ========= */
 async function boot() {
-  const { data: { session } } = await sb.auth.getSession();
+  let session = null;
+  try { session = (await withTimeout(sb.auth.getSession(), 8000, "session check timed out")).data.session; } catch (e) { console.warn(e); }
   S.session = session;
   sb.auth.onAuthStateChange((ev, s) => { S.session = s; if (ev === "SIGNED_OUT") location.reload(); });
   if (!session) return renderAuth();
@@ -423,6 +424,19 @@ async function boot() {
   sb.channel("live").on("postgres_changes", { event: "*", schema: "public", table: "expenses" }, softReload)
     .on("postgres_changes", { event: "*", schema: "public", table: "receipts" }, softReload).subscribe();
   if (S.owner) pickUpShared();
+}
+// Direct password sign-in (no library locks): store the session where supabase-js reads it, then reload.
+async function passwordSignIn(email, password) {
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 20000);
+  let res;
+  try {
+    res = await fetch(SB_URL + "/auth/v1/token?grant_type=password", { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ email, password }), signal: ctl.signal });
+  } catch (e) { throw new Error(e.name === "AbortError" ? "Sign-in timed out: the server didn't answer in 20 seconds." : "Couldn't reach the server (" + e.message + ")."); }
+  finally { clearTimeout(t); }
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(/invalid/i.test(j.error_description || j.msg || "") ? "Wrong email or password." : (j.error_description || j.msg || j.message || "Sign-in failed (" + res.status + ")"));
+  j.expires_at = j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600);
+  localStorage.setItem("jsh-expenses-auth", JSON.stringify(j));
 }
 async function renderAuth() {
   let needsSetup = false;
@@ -442,10 +456,10 @@ async function renderAuth() {
     const f = Object.fromEntries(new FormData(ev.target)); const btn = ev.target.querySelector("button"); btn.disabled = true; $("#authErr").textContent = "";
     try {
       if (needsSetup) await withTimeout(api("setup", f), 20000, "Setup timed out. Reload and try signing in.");
-      const { error } = await withTimeout(sb.auth.signInWithPassword({ email: f.email.trim(), password: f.password }), 20000, "Sign-in timed out. Check your connection and try again.");
-      if (error) throw error;
+      btn.textContent = "Signing in…";
+      await passwordSignIn(f.email.trim(), f.password);
       location.reload();
-    } catch (e) { $("#authErr").textContent = e.message; btn.disabled = false; }
+    } catch (e) { $("#authErr").textContent = e.message; btn.disabled = false; btn.textContent = needsSetup ? "Create account" : "Sign in"; }
   };
 }
 
