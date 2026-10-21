@@ -299,6 +299,8 @@ const todayISO = () => new Date().toLocaleDateString("en-CA");
 const yOf = (d) => d ? +d.slice(0, 4) : null;
 const mOf = (d) => d ? +d.slice(5, 7) : null;
 const qOf = (d) => d ? Math.floor((mOf(d) - 1) / 3) + 1 : null;
+const t12 = (t) => { if (!t) return ""; const [h, m] = t.split(":").map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`; };
+const whenRef = (e) => [e.purchased_time ? t12(e.purchased_time) : "", e.ref_number ? "#" + e.ref_number : ""].filter(Boolean).join(" · ");
 const fmtDate = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No date";
 const dayDiff = (a, b) => Math.abs((new Date(a + "T12:00:00") - new Date(b + "T12:00:00")) / 864e5);
 const vkey = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
@@ -540,9 +542,9 @@ function inboxItem(e) {
   const dup = e.duplicate_of ? expById(e.duplicate_of) : null;
   return `<div class="inbox-item" data-row="${e.id}">${thumbHTML(e)}<div>
     <div class="ii-head"><div class="ii-vendor">${esc(e.vendor || "Unknown vendor")}</div><div class="ii-amt num">${money(e.total)}</div></div>
-    <div class="small muted">${fmtDate(e.date)}${e.description ? " · " + esc(e.description) : ""}</div>
+    <div class="small muted">${fmtDate(e.date)}${whenRef(e) ? " · " + esc(whenRef(e)) : ""}${e.description ? " · " + esc(e.description) : ""}</div>
     <div style="margin-top:6px">${flagChips(e)}</div>
-    ${dup ? `<div class="small" style="margin-top:6px;color:var(--bad)">Looks like a copy of ${esc(dup.vendor || "")} ${money(dup.total)} on ${fmtDate(dup.date)}. <a href="#" data-act="deldup" data-id="${e.id}">Delete this one</a> · <a href="#" data-act="notdup" data-id="${e.id}">Keep both</a></div>` : ""}
+    ${dup ? `<div class="small" style="margin-top:6px;color:var(--bad)">Looks like a copy of ${esc(dup.vendor || "")} ${money(dup.total)} on ${fmtDate(dup.date)}${whenRef(dup) ? " (" + esc(whenRef(dup)) + ")" : ""}. <a href="#" data-act="deldup" data-id="${e.id}">Delete this one</a> · <a href="#" data-act="notdup" data-id="${e.id}">Keep both</a></div>` : ""}
     <div class="ii-fields">
       <input class="in num" type="number" step="0.01" inputmode="decimal" value="${e.total ?? ""}" data-f="total" data-id="${e.id}" aria-label="Amount" placeholder="Amount">
       <input class="in" type="date" value="${e.date || ""}" data-f="date" data-id="${e.id}" aria-label="Date">
@@ -559,7 +561,7 @@ function expRow(e) {
   const c = catById(e.category_id), p = prodById(e.product_id);
   return `<div class="e-row" data-act="edit" data-id="${e.id}">
     <div class="e-date">${e.date ? `<b>${+e.date.slice(8, 10)}</b><span>${MONTHS[mOf(e.date) - 1]}</span>` : "<span>—</span>"}</div>
-    <div class="e-main"><div class="t">${esc(e.vendor || "Unknown")}</div><div class="s">${esc(c?.name || "Uncategorized")}${p ? " · " + esc(p.name) : ""}${e.no_receipt ? " · no receipt" : ""}</div></div>
+    <div class="e-main"><div class="t">${esc(e.vendor || "Unknown")}</div><div class="s">${e.purchased_time ? esc(t12(e.purchased_time)) + " · " : ""}${esc(c?.name || "Uncategorized")}${p ? " · " + esc(p.name) : ""}${e.no_receipt ? " · no receipt" : ""}</div></div>
     <div class="e-amt num">${money(e.total)}${e.status === "review" ? `<div class="tiny" style="color:var(--warn)">in inbox</div>` : ""}</div></div>`;
 }
 
@@ -583,6 +585,10 @@ async function openEditor(id) {
           <label class="f"><span>Category</span><select class="in" name="category_id" ${dis}>${catOpts(e.category_id)}</select></label>
           <label class="f"><span>Product / project</span><select class="in" name="product_id" ${dis}>${prodOpts(e.product_id, "None")}</select></label>
           <label class="f"><span>Paid with</span><select class="in" name="payment_method_id" ${dis}>${cardOpts(e.payment_method_id)}</select></label>
+        </div>
+        <div class="fgrid">
+          <label class="f"><span>Time</span><input class="in" type="time" name="purchased_time" value="${e.purchased_time || ""}" ${dis}></label>
+          <label class="f"><span>Invoice / order #</span><input class="in" name="ref_number" value="${esc(e.ref_number || "")}" ${dis}></label>
         </div>
         <div class="fgrid r3">
           <label class="f"><span>Subtotal</span><input class="in num" type="number" step="0.01" name="subtotal" value="${e.subtotal ?? ""}" ${dis}></label>
@@ -688,9 +694,11 @@ async function processJob(job) {
     job.state = "read"; refreshQueue();
     const out = await api("extract", { receipt_id: rid });
     const ex = out.expenses || [];
-    const allFiled = ex.length && ex.every((e) => e.status === "filed");
+    const real = ex.filter((e) => e.status !== "duplicate");
+    if (!real.length) { job.state = "dup"; return; }
+    const allFiled = real.every((e) => e.status === "filed");
     job.state = allFiled ? "done" : "review";
-    job.msg = ex.map((e) => money(e.total)).join(" + ") + (allFiled ? " filed" : " · confirm");
+    job.msg = real.map((e) => money(e.total)).join(" + ") + (allFiled ? " filed" : " · confirm");
     job.detail = ex.map((e) => e.vendor || "Unknown").join(", ");
   } catch (e) { job.state = "err"; job.msg = e.message; }
 }
@@ -763,7 +771,7 @@ function filteredExpenses() {
     if (f.prod && (f.prod === "none" ? e.product_id : e.product_id !== f.prod)) return false;
     if (f.card && e.payment_method_id !== f.card) return false;
     if (f.vendor && e.vendor_key !== f.vendor) return false;
-    if (q && !`${e.vendor} ${e.description} ${e.notes} ${e.business_purpose} ${e.total}`.toLowerCase().includes(q)) return false;
+    if (q && !`${e.vendor} ${e.description} ${e.notes} ${e.business_purpose} ${e.total} ${e.ref_number || ""}`.toLowerCase().includes(q)) return false;
     return true;
   }).sort((a, b) => (b.date || "") > (a.date || "") ? 1 : -1);
 }
@@ -783,7 +791,7 @@ function viewExpenses() {
   </div>${anyFilter ? `<div class="row wrap" style="margin-top:10px">${vendorName ? `<span class="chip info">Vendor: ${esc(vendorName)}</span>` : ""}${f.card ? `<span class="chip info">Card: ${esc(cardById(f.card)?.label || "")}</span>` : ""}<button class="btn sm ghost" data-act="clearef">Clear filters</button></div>` : ""}</div>
   ${rows.length ? `
   <div class="card only-wide"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Vendor</th><th>Category</th><th>Product</th><th>Card</th><th class="r">Amount</th><th class="r">Deductible</th><th></th></tr></thead><tbody>
-    ${rows.map((e) => { const c = catById(e.category_id), p = prodById(e.product_id), cd = cardById(e.payment_method_id); return `<tr class="click" data-act="edit" data-id="${e.id}"><td class="num" style="white-space:nowrap">${e.date ? fmtDate(e.date) : "—"}</td><td><b>${esc(e.vendor || "Unknown")}</b>${e.description ? `<div class="tiny muted">${esc(e.description)}</div>` : ""}</td><td>${esc(c?.name || "—")}</td><td>${p ? `<span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)}` : "—"}</td><td class="small">${cd ? esc(cd.label) : e.card_last4 ? "••" + esc(e.card_last4) : "—"}</td><td class="r num"><b>${money(e.total)}</b></td><td class="r num muted">${money(deductible(e))}</td><td>${e.no_receipt ? `<span class="chip warn">no receipt</span>` : e.status === "review" ? `<span class="chip warn">inbox</span>` : ""}</td></tr>`; }).join("")}
+    ${rows.map((e) => { const c = catById(e.category_id), p = prodById(e.product_id), cd = cardById(e.payment_method_id); return `<tr class="click" data-act="edit" data-id="${e.id}"><td class="num" style="white-space:nowrap">${e.date ? fmtDate(e.date) : "—"}${e.purchased_time ? `<div class="tiny muted">${esc(t12(e.purchased_time))}</div>` : ""}</td><td><b>${esc(e.vendor || "Unknown")}</b>${e.description || e.ref_number ? `<div class="tiny muted">${esc([e.ref_number ? "#" + e.ref_number : "", e.description || ""].filter(Boolean).join(" · "))}</div>` : ""}</td><td>${esc(c?.name || "—")}</td><td>${p ? `<span class="dot" style="background:${esc(p.color)}"></span>${esc(p.name)}` : "—"}</td><td class="small">${cd ? esc(cd.label) : e.card_last4 ? "••" + esc(e.card_last4) : "—"}</td><td class="r num"><b>${money(e.total)}</b></td><td class="r num muted">${money(deductible(e))}</td><td>${e.no_receipt ? `<span class="chip warn">no receipt</span>` : e.status === "review" ? `<span class="chip warn">inbox</span>` : ""}</td></tr>`; }).join("")}
   </tbody><tfoot><tr><td colspan="5">${rows.length} items</td><td class="r num">${money(total)}</td><td class="r num">${money(ded)}</td><td></td></tr></tfoot></table></div></div>
   <div class="card elist only-narrow">${rows.map(expRow).join("")}</div>` : `<div class="card empty">${IC.list}<b>Nothing here</b>${anyFilter ? "No expenses match these filters." : "Filed expenses for " + S.year + " will show here."}</div>`}`;
 }
@@ -902,7 +910,7 @@ function estimatedBlock(byQ) {
 function exportRows(rows) {
   return rows.slice().sort((a, b) => a.date > b.date ? 1 : -1).map((e) => {
     const c = catById(e.category_id), p = prodById(e.product_id), cd = cardById(e.payment_method_id), r = recById(e.receipt_id);
-    return { Date: e.date, Vendor: e.vendor || "", Description: e.description || "", Category: c?.name || "", "Sch C line": c?.tax_line || "", Product: p?.name || "", "Paid with": cd ? cd.label + (cd.last4 ? " ••" + cd.last4 : "") : e.card_last4 ? "••" + e.card_last4 : "", Total: +e.total || 0, Tax: e.tax ?? "", Tip: e.tip ?? "", "Business %": +e.business_pct, Deductible: deductible(e), "Business purpose": e.business_purpose || "", Attendees: e.attendees || "", Notes: e.notes || "", Receipt: e.no_receipt || !r ? "NONE" : receiptFileName(e, r), Status: e.status };
+    return { Date: e.date, Time: e.purchased_time || "", Vendor: e.vendor || "", "Invoice #": e.ref_number || "", Description: e.description || "", Category: c?.name || "", "Sch C line": c?.tax_line || "", Product: p?.name || "", "Paid with": cd ? cd.label + (cd.last4 ? " ••" + cd.last4 : "") : e.card_last4 ? "••" + e.card_last4 : "", Total: +e.total || 0, Tax: e.tax ?? "", Tip: e.tip ?? "", "Business %": +e.business_pct, Deductible: deductible(e), "Business purpose": e.business_purpose || "", Attendees: e.attendees || "", Notes: e.notes || "", Receipt: e.no_receipt || !r ? "NONE" : receiptFileName(e, r), Status: e.status };
   });
 }
 function receiptFileName(e, r) {
@@ -925,7 +933,7 @@ async function buildWorkbook() {
   const s1 = XLSX.utils.aoa_to_sheet(summary); s1["!cols"] = [{ wch: 11 }, { wch: 44 }, { wch: 14 }, { wch: 60 }];
   XLSX.utils.book_append_sheet(wb, s1, "Summary");
   const er = exportRows(rows); const s2 = XLSX.utils.json_to_sheet(er.length ? er : [{ Note: "No filed expenses" }]);
-  s2["!cols"] = [{ wch: 11 }, { wch: 24 }, { wch: 34 }, { wch: 26 }, { wch: 9 }, { wch: 18 }, { wch: 16 }, { wch: 11 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 11 }, { wch: 30 }, { wch: 20 }, { wch: 24 }, { wch: 44 }, { wch: 8 }];
+  s2["!cols"] = [{ wch: 11 }, { wch: 7 }, { wch: 24 }, { wch: 16 }, { wch: 34 }, { wch: 26 }, { wch: 9 }, { wch: 18 }, { wch: 16 }, { wch: 11 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 11 }, { wch: 30 }, { wch: 20 }, { wch: 24 }, { wch: 44 }, { wch: 8 }];
   XLSX.utils.book_append_sheet(wb, s2, "Expenses");
   for (const [by, name] of [["category", "By category"], ["vendor", "By vendor"], ["product", "By product"], ["month", "By month"], ["quarter", "By quarter"]]) {
     const g = groupRows(rows, by).map((x) => ({ [name.replace("By ", "").replace(/^./, (c) => c.toUpperCase())]: x.label, Count: x.n, Spent: Math.round(x.total * 100) / 100, Deductible: Math.round(x.ded * 100) / 100 }));
@@ -1199,7 +1207,7 @@ document.addEventListener("click", async (ev) => {
       case "notdup": { const e = expById(id); await updateExp(id, { duplicate_of: null, ai_flags: (e.ai_flags || []).filter((f) => !/duplicate/i.test(f)) }); render(); } break;
       case "edsave": {
         const f = Object.fromEntries(new FormData($("#edForm")));
-        const patch = { vendor: f.vendor || null, date: f.date || null, total: num(f.total), subtotal: num(f.subtotal), tax: num(f.tax), tip: num(f.tip), category_id: f.category_id || null, product_id: f.product_id || null, payment_method_id: f.payment_method_id || null, description: f.description || null, business_pct: num(f.business_pct) ?? 100, business_purpose: f.business_purpose || null, attendees: f.attendees || null, notes: f.notes || null };
+        const patch = { vendor: f.vendor || null, date: f.date || null, total: num(f.total), subtotal: num(f.subtotal), tax: num(f.tax), tip: num(f.tip), category_id: f.category_id || null, product_id: f.product_id || null, payment_method_id: f.payment_method_id || null, description: f.description || null, business_pct: num(f.business_pct) ?? 100, business_purpose: f.business_purpose || null, attendees: f.attendees || null, notes: f.notes || null, purchased_time: f.purchased_time || null, ref_number: (f.ref_number || "").replace(/^#/, "").trim() || null };
         if (a.dataset.file === "1") { if (!readyToFile(patch)) { toast("Needs an amount, date and category"); break; } patch.status = "filed"; } else patch.status = "review";
         await updateExp(id, patch); closeModal(); render(); toast(patch.status === "filed" ? "Saved and filed" : "Saved");
       } break;
