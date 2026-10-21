@@ -139,6 +139,8 @@ textarea.in{min-height:70px;resize:vertical}
 /* inbox */
 .inbox-item{display:grid;grid-template-columns:84px 1fr;gap:14px;padding:14px;border-bottom:1px solid var(--line)}
 .inbox-item:last-child{border-bottom:0}
+[data-open]{cursor:pointer}[data-open]:hover{background:var(--surface-2)}
+[data-open] .in,[data-open] .btn{cursor:auto}[data-open] .btn{cursor:pointer}
 .thumb{width:84px;height:104px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;display:grid;place-items:center;cursor:pointer;color:var(--ink-3)}
 .thumb img{width:100%;height:100%;object-fit:cover}
 .thumb svg{width:30px;height:30px}
@@ -522,7 +524,7 @@ function viewInbox() {
     <button class="btn primary" data-go="capture">${IC.camera} Add receipt</button></div>`;
   if (reading.length) h += `<div class="card pad row" style="margin-bottom:12px"><div class="spin"></div><div><b>Reading ${reading.length} receipt${reading.length > 1 ? "s" : ""}…</b><div class="small muted">They'll appear below or file themselves when done.</div></div></div>`;
   if (failed.length) h += `<div class="section-title"><h3>Couldn't read</h3></div><div class="card">${failed.map((r) => `
-    <div class="q-item"><span class="chip bad">Error</span><div class="q-name"><b>${esc(r.email_subject || r.original_name || "Receipt")}</b><div class="small muted">${esc(r.error || "")}</div></div>
+    <div class="q-item" data-open="viewrec" data-id="${r.id}" title="Open details"><span class="chip bad">Error</span><div class="q-name"><b>${esc(r.email_subject || r.original_name || "Receipt")}</b><div class="small muted">${esc(r.error || "")}</div></div>
     <button class="btn sm" data-act="viewrec" data-id="${r.id}">View</button><button class="btn sm" data-act="retry" data-id="${r.id}">Retry</button><button class="btn sm danger" data-act="delrec" data-id="${r.id}">Delete</button></div>`).join("")}</div>`;
   if (!review.length && !failed.length && !reading.length) {
     h += `<div class="card empty">${IC.check}<b>All caught up</b>Snap a receipt, forward an email, or text a photo. Anything the reader is sure about files itself.</div>`;
@@ -540,7 +542,7 @@ function inboxItem(e) {
   const c = catById(e.category_id);
   const isMeal = c && /meal/i.test(c.name);
   const dup = e.duplicate_of ? expById(e.duplicate_of) : null;
-  return `<div class="inbox-item" data-row="${e.id}">${thumbHTML(e)}<div>
+  return `<div class="inbox-item" data-row="${e.id}" data-open="edit" data-id="${e.id}" title="Open details">${thumbHTML(e)}<div>
     <div class="ii-head"><div class="ii-vendor">${esc(e.vendor || "Unknown vendor")}</div><div class="ii-amt num">${money(e.total)}</div></div>
     <div class="small muted">${fmtDate(e.date)}${whenRef(e) ? " · " + esc(whenRef(e)) : ""}${e.description ? " · " + esc(e.description) : ""}</div>
     <div style="margin-top:6px">${flagChips(e)}</div>
@@ -1181,8 +1183,10 @@ document.addEventListener("click", async (ev) => {
     S.ef = { q: "", month: p === "year" ? "" : p[0] === "Q" ? p : p.slice(1), cat: "", prod: "", vendor: "", card: "", status: "filed", ...f };
     go("expenses"); return;
   }
-  const a = ev.target.closest("[data-act]"); if (!a) return;
-  const act = a.dataset.act, id = a.dataset.id;
+  // a click anywhere on an inbox card (not on its fields or buttons) opens the details
+  const op = ev.target.closest("[data-open]");
+  const a = op && !ev.target.closest("input,select,textarea,button,a,label,[data-act]") ? op : ev.target.closest("[data-act]"); if (!a) return;
+  const act = a === op ? op.dataset.open : a.dataset.act, id = a.dataset.id;
   if (act === "closebg" && ev.target !== a) return;
   if (a.tagName === "A") ev.preventDefault();
   try {
