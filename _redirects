@@ -1,0 +1,3 @@
+/receipts    /expenses/  301
+/receipts/*  /expenses/  301
+/expenses    /expenses/  301
