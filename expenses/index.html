@@ -162,6 +162,16 @@ textarea.in{min-height:70px;resize:vertical}
 .cap-btn b{font-size:17px}
 .cap-btn span{font-size:13px;opacity:.8}
 .cap-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.cap-wide{grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;font:inherit;color:inherit}
+.cap-wide div{display:flex;flex-direction:column;gap:2px}
+.kinds{display:flex;flex-wrap:wrap;gap:6px}
+.kind{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:7px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.kind.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.tax-note{font-size:13px;line-height:1.45;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.tax-note b{color:var(--ink)}
+.picked{font-size:13px;color:var(--ink-2)}
+.picked svg{width:14px;height:14px;vertical-align:-2px;color:var(--accent)}
+.cap-wide svg{flex:none}
 .drop{border:2px dashed var(--line-2);border-radius:var(--r);padding:22px;text-align:center;color:var(--ink-3)}
 .drop.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .q-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
@@ -313,6 +323,7 @@ function loadScript(src) { return new Promise((res, rej) => { if ($(`script[src=
 const LIBS = { xlsx: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js", zip: "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" };
 
 const IC = {
+  people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/></svg>',
   inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
   camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
   list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>',
@@ -647,6 +658,7 @@ function viewCapture() {
   <div class="cap-hero">
     <label class="cap-btn main">${IC.camera}<b>Take a photo</b><span>Opens your camera</span><input type="file" accept="image/*" capture="environment" id="camIn" multiple></label>
     <label class="cap-btn">${IC.upload}<b>Upload files</b><span>Images or PDFs, as many as you like</span><input type="file" accept="image/*,application/pdf" id="upIn" multiple></label>
+    <button class="cap-btn cap-wide" data-act="client">${IC.people}<div><b>Client meal or outing</b><span>Lunch, dinner, drinks, golf, a game, a gift. Add who was there and why, then the receipt.</span></div></button>
   </div>
   <div class="drop only-wide" id="drop" style="margin-top:12px">Drop receipt files here. Clearing a backlog? Drop the whole folder's worth at once.</div>
   ${q.length ? `<div class="section-title"><h3>This batch</h3><span class="small muted">${q.filter((x) => x.state === "done").length} of ${q.length} done</span></div><div class="card" id="queue">${q.map(qItem).join("")}</div>` : ""}
@@ -691,13 +703,20 @@ async function finishBatch() { await loadAll(); await runMatching(true); renderN
 async function processJob(job) {
   try {
     let rid;
-    try { rid = await storeFile(job.file, job.source); }
+    try { rid = await storeFile(job.file, job.source, job.meta?.note); }
     catch (e) { if (e.dup) { job.state = "dup"; return; } throw e; }
     job.state = "read"; refreshQueue();
     const out = await api("extract", { receipt_id: rid });
     const ex = out.expenses || [];
     const real = ex.filter((e) => e.status !== "duplicate");
     if (!real.length) { job.state = "dup"; return; }
+    if (job.meta) for (const e of real) {
+      const patch = {};
+      if (!e.attendees && job.meta.attendees) patch.attendees = job.meta.attendees;
+      if (!e.business_purpose && job.meta.purpose) patch.business_purpose = job.meta.purpose;
+      if (!e.product_id && job.meta.product_id) patch.product_id = job.meta.product_id;
+      if (Object.keys(patch).length) await sb.from("expenses").update(patch).eq("id", e.id);
+    }
     const allFiled = real.every((e) => e.status === "filed");
     job.state = allFiled ? "done" : "review";
     job.msg = real.map((e) => money(e.total)).join(" + ") + (allFiled ? " filed" : " · confirm");
@@ -726,7 +745,7 @@ async function prepFile(file) {
     }
   }
 }
-async function storeFile(file, source) {
+async function storeFile(file, source, note) {
   const { blob, mime, ext } = await prepFile(file);
   const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()))].map((b) => b.toString(16).padStart(2, "0")).join("");
   const { data: dup } = await sb.from("receipts").select("id").eq("file_hash", hash).limit(1);
@@ -734,7 +753,7 @@ async function storeFile(file, source) {
   const d = new Date(); const path = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${uuid()}.${ext}`;
   const up = await sb.storage.from("receipts").upload(path, blob, { contentType: mime });
   if (up.error) throw new Error("Upload failed: " + up.error.message);
-  const { data, error } = await sb.from("receipts").insert({ storage_path: path, mime, file_hash: hash, original_name: file.name || null, source }).select("id").single();
+  const { data, error } = await sb.from("receipts").insert({ storage_path: path, mime, file_hash: hash, original_name: file.name || null, source, email_text: note || null }).select("id").single();
   if (error) throw error;
   return data.id;
 }
@@ -746,6 +765,76 @@ async function pickUpShared() {
     history.replaceState(null, "", location.pathname + "#capture");
     if (files.length) enqueue(files, "upload");
   } catch (e) { console.warn(e); }
+}
+
+/* ========= CLIENT MEAL OR OUTING ========= */
+const KINDS = [
+  ["Lunch", "Client meals & drinks (50%)"], ["Dinner", "Client meals & drinks (50%)"], ["Breakfast / coffee", "Client meals & drinks (50%)"], ["Drinks", "Client meals & drinks (50%)"],
+  ["Golf", "Client entertainment (0%)"], ["Game / event", "Client entertainment (0%)"], ["Show / concert", "Client entertainment (0%)"], ["Boat / fishing", "Client entertainment (0%)"],
+  ["Gift", "Client gifts ($25 limit)"], ["Team event", "Team & company events (100%)"], ["Travel meal", "Travel meals (50%)"], ["Other", ""],
+];
+const KIND_NOTE = {
+  "Client meals & drinks (50%)": "<b>50% deductible.</b> You need to be there, and it's worth noting who and what you discussed.",
+  "Client entertainment (0%)": "<b>Not deductible</b> under current law, even with business talk. It's still tracked for your records. Food and drinks at the course or venue <b>are 50%</b> if they're on their own receipt or itemized, so snap that receipt too.",
+  "Client gifts ($25 limit)": "<b>Deductible up to $25</b> per person per year.",
+  "Team & company events (100%)": "<b>100% deductible</b> when it's open to the whole team.",
+  "Travel meals (50%)": "<b>50% deductible</b> while you're away overnight on business.",
+  "": "The reader will pick the category from the receipt.",
+};
+let CM = { kind: "", files: [] };
+function openClient() {
+  CM = { kind: "", files: [] };
+  $("#modal").innerHTML = `<div class="modal-bg" data-act="closebg"><div class="modal narrow"><div class="modal-head"><h3>Client meal or outing</h3><button class="btn ghost sm" data-act="close" aria-label="Close">${IC.x}</button></div>
+    <form class="modal-body pad stack" id="cmForm" onsubmit="return false">
+      <div><div class="small muted" style="font-weight:600;margin-bottom:6px">What was it?</div><div class="kinds">${KINDS.map(([k]) => `<button type="button" class="kind" data-act="cmkind" data-k="${esc(k)}">${esc(k)}</button>`).join("")}</div></div>
+      <div class="tax-note hide" id="cmNote"></div>
+      <div class="fgrid"><label class="f"><span>Who was there</span><input class="in" name="who" placeholder="e.g. Mike Torres, Sarah Lee"></label>
+      <label class="f"><span>Company</span><input class="in" name="company" placeholder="e.g. Brije Real Estate"></label></div>
+      <label class="f"><span>What you discussed</span><input class="in" name="purpose" placeholder="e.g. MyRealtyVault pilot for their agents"></label>
+      <label class="f"><span>Product / project</span><select class="in" name="product_id">${prodOpts("", "None")}</select></label>
+      <div><div class="small muted" style="font-weight:600;margin-bottom:6px">Receipt</div>
+        <div class="row wrap" style="gap:8px"><label class="btn">${IC.camera} Take photo<input type="file" accept="image/*" capture="environment" class="hide" id="cmCam" multiple></label>
+        <label class="btn">${IC.upload} Upload<input type="file" accept="image/*,application/pdf" class="hide" id="cmUp" multiple></label></div>
+        <div class="picked" id="cmPicked" style="margin-top:6px">No receipt yet. Got two (e.g. green fees and the grill)? Add both.</div></div>
+      <div id="cmManual" class="stack"><div class="small muted">No receipt? Enter it here instead.</div>
+        <div class="fgrid"><label class="f"><span>Where</span><input class="in" name="vendor" placeholder="e.g. Ocala Golf Club"></label>
+        <label class="f"><span>Amount</span><input class="in num" type="number" step="0.01" inputmode="decimal" name="total"></label>
+        <label class="f"><span>Date</span><input class="in" type="date" name="date" value="${todayISO()}"></label></div></div>
+    </form>
+    <div class="modal-foot"><button class="btn primary" data-act="cmsave">${IC.check} Save</button></div></div></div>`;
+  const pick = (inp) => { inp.onchange = () => { CM.files.push(...inp.files); inp.value = ""; cmPicked(); }; };
+  pick($("#cmCam")); pick($("#cmUp"));
+}
+function cmPicked() {
+  $("#cmPicked").innerHTML = CM.files.length ? CM.files.map((f) => `${IC.check} ${esc(f.name || "Photo")}`).join("<br>") : "No receipt yet.";
+  $("#cmManual").classList.toggle("hide", CM.files.length > 0);
+}
+function cmKind(k) {
+  CM.kind = k;
+  document.querySelectorAll("#cmForm .kind").forEach((b) => b.classList.toggle("on", b.dataset.k === k));
+  const cat = (KINDS.find((x) => x[0] === k) || [])[1] || "";
+  const n = $("#cmNote"); n.innerHTML = KIND_NOTE[cat] || ""; n.classList.remove("hide");
+}
+async function cmSave() {
+  const f = Object.fromEntries(new FormData($("#cmForm")));
+  if (!CM.kind) { toast("Pick what it was"); return; }
+  const catName = (KINDS.find((x) => x[0] === CM.kind) || [])[1] || "";
+  const cat = S.cats.find((c) => c.name === catName);
+  const attendees = [f.who, f.company && `(${f.company})`].filter(Boolean).join(" ") || null;
+  const purpose = f.purpose || null;
+  if (!CM.files.length) {
+    if (!f.vendor || !num(f.total) || !f.date) { toast("Add the receipt, or enter where, amount and date"); return; }
+    const { error } = await sb.from("expenses").insert({ vendor: f.vendor, date: f.date, total: num(f.total), category_id: cat?.id || null, product_id: f.product_id || null, attendees, business_purpose: purpose, description: CM.kind + (f.company ? " with " + f.company : ""), no_receipt: true, status: cat ? "filed" : "review", ai_flags: cat ? [] : ["pick a category"] });
+    if (error) throw error;
+    closeModal(); await loadAll(); render(); toast("Saved"); return;
+  }
+  const note = [`What it was: ${CM.kind}${catName ? ` (category: ${catName})` : ""}.`, attendees && `Who was there: ${attendees}.`, purpose && `Business purpose: ${purpose}.`,
+    catName === "Client entertainment (0%)" ? "If this receipt itemizes food or drinks separately, record that part as 'Food at events (50%)'." : ""].filter(Boolean).join("\n");
+  const meta = { note, attendees, purpose, product_id: f.product_id || null };
+  const files = CM.files; closeModal();
+  for (const file of files) S.queue.unshift({ id: uuid(), file, name: (file.name || "Photo") + " · " + CM.kind, source: "upload", state: "wait", meta });
+  if (S.view !== "capture") go("capture"); else render();
+  pump();
 }
 
 function openManual(prefill = {}) {
@@ -1195,6 +1284,9 @@ document.addEventListener("click", async (ev) => {
       case "signout": await sb.auth.signOut(); break;
       case "edit": openEditor(id); break;
       case "manual": openManual(); break;
+      case "client": openClient(); break;
+      case "cmkind": cmKind(a.dataset.k); break;
+      case "cmsave": await cmSave(); break;
       case "file": {
         const row = a.closest("[data-row]"); const patch = {};
         for (const el of $$("[data-f]", row)) patch[el.dataset.f] = el.dataset.f === "total" ? num(el.value) : (el.value || null);
