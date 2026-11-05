@@ -192,7 +192,8 @@
   // ---- formatting ----
   const when = (iso) => { if (!iso) return "Not opened"; const d = new Date(iso), now = new Date(); const t = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); if (d.toDateString() === now.toDateString()) return "Today, " + t; const y = new Date(now - 864e5); if (d.toDateString() === y.toDateString()) return "Yesterday, " + t; return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + t; };
   const dur = (s) => !s ? "–" : s < 60 ? s + " sec" : s < 3600 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " hr";
-  const LABEL = { story: "Story", portfolio: "Portfolio", product: "Product", model: "Model", team: "Founder", docs: "Documents", contact: "Contact" };
+  const LABEL = { story: "Story", portfolio: "Portfolio", product: "Product", model: "Model", financials: "Financials", valuation: "Buyout", team: "Founder", docs: "Documents", contact: "Contact" };
+  const secLabel = (s) => LABEL[s] || (String(s).startsWith("financials:") ? "Financials (" + String(s).slice(11) + ")" : s);
 
   let links = [];
   async function load() {
@@ -208,7 +209,7 @@
     links.forEach((l) => {
       const tr = el("tr");
       const who = el("td"); who.append(el("div", null, l.name)); who.firstChild.style.fontWeight = "600"; if (l.firm) who.append(el("div", "soft small", l.firm));
-      const read = (l.sections || []).filter((s) => s !== "story" && s !== "contact").map((s) => LABEL[s] || s);
+      const read = (l.sections || []).filter((s) => s !== "story" && s !== "contact" && !String(s).startsWith("financials:")).map(secLabel);
       const st = el("td"), sp = el("span", "state");
       const label = l.state === "off" ? "Turned off" : l.state === "expired" ? "Expired" : l.call_requested_at ? "Asked for a call" : l.visits ? "Active" : "Not opened yet";
       sp.append(el("span", "dot" + (l.state !== "active" ? " off" : l.call_requested_at ? " red" : "")), document.createTextNode(label));
@@ -240,7 +241,7 @@
       if (!d.visits.length) { td.append(el("p", "small soft", "No visits yet. Created " + when(l.created_at) + ".")); return; }
       const ul = el("ul");
       d.visits.forEach((v) => {
-        const evs = d.events.filter((e) => e.visit_id === v.id && e.kind !== "open").reverse().map((e) => e.kind === "section" ? (LABEL[e.detail] || e.detail) : e.kind === "accept" ? "agreed to confidentiality" : e.kind === "call" ? "clicked Book a call" : e.kind === "doc" ? "opened " + e.detail : e.kind === "video" ? "played the demo" : e.kind);
+        const evs = d.events.filter((e) => e.visit_id === v.id && e.kind !== "open").reverse().map((e) => e.kind === "section" ? secLabel(e.detail) : e.kind === "accept" ? "agreed to confidentiality" : e.kind === "call" ? "clicked Book a call" : e.kind === "doc" ? "opened " + e.detail : e.kind === "video" ? "played the demo" : e.kind);
         const dev = /iPhone|iPad/.test(v.user_agent) ? "iPhone/iPad" : /Android/.test(v.user_agent) ? "Android" : /Mac/.test(v.user_agent) ? "Mac" : /Windows/.test(v.user_agent) ? "Windows" : "browser";
         ul.append(el("li", null, when(v.started_at) + " · " + dur(v.seconds) + " · " + dev + (evs.length ? " · " + [...new Set(evs)].join(", ") : "")));
       });

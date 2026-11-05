@@ -95,6 +95,21 @@
   th:first-child, td:first-child { text-align: left; padding-left: 0; }
   thead th { font-weight: 600; }
   tbody th { font-weight: 400; color: var(--ink-soft); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--line); width: fit-content; max-width: 100%; }
+  .tabs button { min-height: 44px; padding: 0 18px; background: transparent; color: var(--ink-soft); border: 0; border-right: 1px solid var(--line); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .tabs button:last-child { border-right: 0; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--navy); }
+  .fin { min-width: 640px; }
+  .fin td, .fin th { padding: 9px 12px; }
+  .fin th:first-child, .fin td:first-child { padding-left: 0; }
+  .fin tr.head th, .fin tr.head td { color: var(--ink); font-weight: 600; padding-top: 18px; padding-bottom: 4px; border-bottom-color: transparent; }
+  .val tbody th { color: var(--ink); font-weight: 600; }
+  [role="tabpanel"] .fine { margin-top: 10px; }
+  .fin tr.total th, .fin tr.total td { color: var(--ink); font-weight: 600; border-top: 1px solid var(--ink-soft); }
+  .fin tbody tr.sub th { padding-left: 14px; }
+  .val td.big { font-family: 'Instrument Serif', serif; font-size: 22px; }
+  .tablewrap { overflow-x: auto; }
+  .fine { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink-soft); max-width: 80ch; }
   .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
   .notes b { display: block; margin-bottom: 6px; }
   .notes p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
@@ -322,6 +337,58 @@
       }
       s.append(sp);
       if (m.notes?.length) { const n = el("div", "notes"); m.notes.forEach((x) => { const d = el("div"); d.append(el("b", null, x.title), el("p", null, x.text)); n.append(d); }); s.append(n); }
+      add(s);
+    }
+    // five-year plan: one table per case, switched by tabs
+    const fin = c.financials;
+    if (fin?.scenarios?.length) {
+      const s = section("financials", "Financials");
+      const h = head(fin.eyebrow, fin.title); if (fin.lede) h.append(el("p", "lede", fin.lede)); s.append(h);
+      const tabs = el("div", "tabs"); tabs.setAttribute("role", "tablist"); tabs.setAttribute("aria-label", "Cases");
+      const panels = [];
+      fin.scenarios.forEach((sc, i) => {
+        const b = el("button", null, sc.name); b.type = "button"; b.id = "fin-tab-" + i;
+        b.setAttribute("role", "tab"); b.setAttribute("aria-selected", i === 0 ? "true" : "false"); b.setAttribute("aria-controls", "fin-panel-" + i);
+        tabs.append(b);
+        const p = el("div"); p.id = "fin-panel-" + i; p.setAttribute("role", "tabpanel"); p.setAttribute("aria-labelledby", b.id); if (i) p.hidden = true;
+        const w = el("div", "tablewrap"), t = el("table", "fin");
+        t.append(el("caption", null, sc.name + " case"));
+        const th = el("thead"), tr = el("tr"); tr.append(el("th")); (fin.cols || []).forEach((cn) => { const x = el("th", null, cn); x.scope = "col"; tr.append(x); }); th.append(tr); t.append(th);
+        const tb = el("tbody"); let inRevenue = false;
+        (sc.rows || []).forEach((r) => {
+          const row = el("tr", r.style === "head" ? "head" : r.style === "total" ? "total" : (inRevenue ? "sub" : null));
+          if (r.style === "head") inRevenue = true; else if (r.style === "total") inRevenue = false;
+          const lab = el("th", null, r.label); lab.scope = "row"; row.append(lab);
+          if (r.style === "head") { const f = el("td"); f.colSpan = (fin.cols || []).length; row.append(f); }
+          else (r.values || []).forEach((v) => row.append(el("td", null, v)));
+          tb.append(row);
+        });
+        t.append(tb); w.append(t); p.append(w);
+        if (sc.note) p.append(el("p", "fine", sc.note));
+        panels.push(p);
+      });
+      const pick = (i) => { [...tabs.children].forEach((b, j) => b.setAttribute("aria-selected", j === i ? "true" : "false")); panels.forEach((p, j) => (p.hidden = j !== i)); track("section", "financials:" + fin.scenarios[i].name); };
+      [...tabs.children].forEach((b, i) => {
+        b.addEventListener("click", () => pick(i));
+        b.addEventListener("keydown", (e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = (i + (e.key === "ArrowRight" ? 1 : -1) + panels.length) % panels.length; tabs.children[n].focus(); pick(n); } });
+      });
+      s.append(tabs, ...panels);
+      add(s);
+    }
+    // buyout value at revenue multiples
+    const val = c.valuation;
+    if (val?.tables?.length) {
+      const s = section("valuation", "Buyout");
+      const h = head(val.eyebrow, val.title); if (val.lede) h.append(el("p", "lede", val.lede)); s.append(h);
+      val.tables.forEach((tbl) => {
+        const w = el("div", "tablewrap"), t = el("table", "val");
+        t.append(el("caption", null, tbl.caption || ""));
+        const th = el("thead"), tr = el("tr"); tr.append(el("th")); (tbl.cols || []).forEach((cn) => { const x = el("th", null, cn); x.scope = "col"; tr.append(x); }); th.append(tr); t.append(th);
+        const tb = el("tbody");
+        (tbl.rows || []).forEach((r) => { const row = el("tr"); r.forEach((cell, i) => { const x = el(i ? "td" : "th", i ? "big" : null, cell); if (!i) x.scope = "row"; row.append(x); }); tb.append(row); });
+        t.append(tb); w.append(t); s.append(w);
+      });
+      if (val.note) s.append(el("p", "fine", val.note));
       add(s);
     }
     // founder + traction
