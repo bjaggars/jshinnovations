@@ -89,6 +89,10 @@
   .xlabels { display: grid; gap: 18px; font-size: 13px; color: var(--ink-soft); text-align: center; }
   .tbl { overflow-x: auto; }
   .split > .side.tbl { flex: 1 1 430px; }
+  .tbl th, .tbl td { white-space: normal; padding: 10px 6px; }
+  .tbl td { white-space: nowrap; }
+  .tbl thead th { vertical-align: bottom; }
+  .tbl table { width: 100%; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   caption { text-align: left; font-size: 14px; color: var(--ink-soft); padding-bottom: 10px; }
   th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
