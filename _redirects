@@ -1,3 +1,5 @@
 /receipts    /expenses/  301
 /receipts/*  /expenses/  301
 /expenses    /expenses/  301
+/investors    /investors/  301
+/investors/admin    /investors/admin/  301

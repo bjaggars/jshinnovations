@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investor room — JSH Innovations</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout only. Every word and number in the room comes from the server, for a valid link. */
+  :root { --navy:#111b38; --navy-2:#162144; --ink:#f3f2f2; --ink-soft:#aab1c9; --line:#2a3560; --red:#ec3013; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  body { margin: 0; background: var(--navy); color: var(--ink); font-family: 'Instrument Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--ink); }
+  .serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .soft { color: var(--ink-soft); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+  .hide { display: none !important; }
+  button { font: inherit; }
+
+  /* gate screens */
+  .gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+  .gate-card { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 26px; }
+  .gate h1 { margin: 0; font-size: 42px; line-height: 1.1; }
+  .gate p { margin: 0; font-size: 16px; line-height: 1.55; }
+  .terms { border-top: 1px solid var(--line); }
+  .terms div { display: flex; gap: 12px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+  .terms svg { flex: none; margin-top: 1px; }
+  .agree { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.5; cursor: pointer; }
+  .agree input { width: 22px; height: 22px; margin: 0; accent-color: var(--ink); flex: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 24px; background: var(--ink); color: var(--navy); border: 0; font-weight: 600; font-size: 16px; text-decoration: none; cursor: pointer; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .small { font-size: 13px; }
+
+  /* room */
+  header.top { position: sticky; top: 0; z-index: 5; background: rgba(17,27,56,.96); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  .top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding-top: 14px; padding-bottom: 14px; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand b { display: block; font-weight: 600; font-size: 15px; }
+  nav.sections { display: flex; flex-wrap: wrap; gap: 2px; }
+  nav.sections a { text-decoration: none; font-size: 14px; color: var(--ink-soft); padding: 10px 12px; }
+  nav.sections a:hover { color: var(--ink); }
+  .who { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
+  .sq { display: inline-block; width: 8px; height: 8px; background: var(--red); flex: none; }
+  .sq.white { background: var(--ink); }
+  .preview-bar { background: var(--red); color: #fff; text-align: center; font-size: 14px; font-weight: 600; padding: 8px 16px; }
+
+  section.s { padding: 56px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 24px; }
+  section.s:last-of-type { border-bottom: 0; }
+  .head { display: flex; flex-direction: column; gap: 8px; }
+  h2 { margin: 0; font-size: 38px; line-height: 1.15; }
+  .hero { padding: 72px 0 56px; }
+  .hero h1 { margin: 0; font-size: clamp(40px, 6vw, 60px); line-height: 1.06; max-width: 16ch; }
+  .hero h1 em { font-style: italic; }
+  .lede { margin: 0; font-size: 18px; line-height: 1.55; color: var(--ink-soft); max-width: 60ch; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .tile { background: var(--navy-2); padding: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .tile .v { font-family: 'Instrument Serif', serif; font-size: 40px; line-height: 1; }
+  .tile .l { font-size: 14px; color: var(--ink-soft); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .card { background: var(--navy-2); padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .card .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .card .n { font-weight: 600; font-size: 18px; }
+  .tag { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; }
+  .tag.dev { color: var(--ink-soft); }
+  .card p, .pt p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+  .split { display: flex; flex-wrap: wrap; gap: 24px 32px; }
+  .split > .main { flex: 999 1 520px; min-width: 0; }
+  .split > .side { flex: 1 1 280px; min-width: 0; }
+  .video { aspect-ratio: 16 / 9; background: var(--navy-2); border: 1px solid var(--line); width: 100%; display: block; }
+  .points { border-top: 1px solid var(--line); }
+  .pt { padding: 16px 0; border-bottom: 1px solid var(--line); display: flex; gap: 14px; }
+  .pt .sq { margin-top: 6px; width: 10px; height: 10px; }
+  .pt b { display: block; margin-bottom: 4px; }
+  .points.wide { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 32px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  figcaption { font-size: 14px; color: var(--ink-soft); }
+  .bars { height: 300px; display: grid; gap: 18px; align-items: end; border-bottom: 1px solid var(--ink-soft); }
+  .bar { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .bar span { font-size: 14px; font-weight: 600; }
+  .bar i { display: block; width: 100%; background: var(--ink); min-height: 3px; }
+  .bar.top i { background: var(--red); }
+  .xlabels { display: grid; gap: 18px; font-size: 13px; color: var(--ink-soft); text-align: center; }
+  .tbl { overflow-x: auto; }
+  .split > .side.tbl { flex: 1 1 430px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  caption { text-align: left; font-size: 14px; color: var(--ink-soft); padding-bottom: 10px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; padding-left: 0; }
+  thead th { font-weight: 600; }
+  tbody th { font-weight: 400; color: var(--ink-soft); }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+  .notes b { display: block; margin-bottom: 6px; }
+  .notes p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+  .person { display: flex; gap: 20px; align-items: center; }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--navy-2); border: 1px solid var(--line); flex: none; object-fit: cover; }
+  .person b { font-size: 19px; display: block; margin-bottom: 4px; }
+  .person p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); max-width: 60ch; }
+  .docs { border-top: 1px solid var(--line); }
+  .doc { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+  .doc b { display: block; font-size: 17px; margin-bottom: 4px; }
+  .doc:hover b { text-decoration: underline; text-underline-offset: 3px; }
+  .contact { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; background: var(--navy-2); border: 1px solid var(--line); padding: 24px; }
+  .contact .t { font-size: 26px; display: block; margin-bottom: 4px; }
+  footer.legal { border-top: 1px solid var(--line); }
+  footer.legal .wrap { padding-top: 24px; padding-bottom: 40px; font-size: 13px; line-height: 1.7; color: var(--ink-soft); }
+  footer.legal p { margin: 0 0 8px; }
+  footer.legal b { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 0 20px; }
+    nav.sections { display: none; }
+    .hero { padding: 40px 0 36px; }
+    section.s { padding: 40px 0; }
+    h2 { font-size: 30px; }
+    .lede { font-size: 16px; }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tile { padding: 16px; }
+    .tile .v { font-size: 30px; }
+    .bars { height: 220px; gap: 10px; }
+    .xlabels { gap: 10px; }
+    .who span:last-child { display: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .fade { animation: rise .5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 100 100"><rect x="30" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="44" y="44" width="12" height="12" fill="#ec3013"/><rect x="30" y="58" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="58" width="12" height="12" fill="#f3f2f2"/></symbol>
+</svg>
+
+<!-- loading / closed screens -->
+<div id="gate" class="gate">
+  <div class="gate-card fade">
+    <svg width="56" height="56" role="img" aria-label="JSH mark"><use href="#mark"/></svg>
+    <div id="gateBody" style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Private investor room</div>
+      <p class="soft" id="gateMsg">Opening your room…</p>
+    </div>
+  </div>
+</div>
+
+<!-- welcome -->
+<div id="welcome" class="gate hide">
+  <div class="gate-card fade">
+    <svg width="56" height="56" role="img" aria-label="JSH mark"><use href="#mark"/></svg>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Private investor room</div>
+      <h1 class="serif">Welcome, <em id="wName"></em></h1>
+      <p class="soft">Brice set up this room for you. It covers JSH Innovations: the portfolio, our lead product MyRealtyVault, and its five-year model.</p>
+    </div>
+    <div class="terms">
+      <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aab1c9" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>This link is yours alone. Please don't forward it.</span></div>
+      <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aab1c9" stroke-width="1.6" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Brice can see when you visit and which sections you open.</span></div>
+      <div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aab1c9" stroke-width="1.6" aria-hidden="true"><path d="M4 19h16M6 15l3-4 3 3 5-7"/></svg><span>Projections are estimates, not guarantees, and nothing here is an offer to sell securities.</span></div>
+    </div>
+    <label class="agree"><input id="agree" type="checkbox"> <span>I'll keep what's in this room confidential.</span></label>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <button id="enter" class="btn" type="button" disabled>Enter the room</button>
+      <span class="small soft" style="text-align:center" id="wFoot"></span>
+    </div>
+  </div>
+</div>
+
+<!-- the room -->
+<div id="room" class="hide">
+  <div id="previewBar" class="preview-bar hide">Preview — this is what investors see. Your visit isn't tracked.</div>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#story"><svg width="36" height="36" role="img" aria-label="JSH mark"><use href="#mark"/></svg><span><b>JSH Innovations</b><span class="eyebrow">Investor room</span></span></a>
+      <nav class="sections" aria-label="Sections" id="nav"></nav>
+      <div class="who"><span class="sq"></span><span id="whoLine"></span></div>
+    </div>
+  </header>
+  <main class="wrap" id="main"></main>
+  <footer class="legal"><div class="wrap"><p id="disclaimer"></p><p><b>Jaggars Software Holdings LLC</b> · d/b/a JSH Innovations · Saint Petersburg, FL</p></div></footer>
+</div>
+
+<script>
+(() => {
+  const FN = "https://cfhualtyvccfjxenvkud.supabase.co/functions/v1/investor-room";
+  const AUTH_KEY = "jsh-expenses-auth"; // the owner's JSH sign-in (shared with /expenses and /investors/admin)
+  const $ = (s) => document.querySelector(s);
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+  // ---- the link: /investors/#k=TOKEN (a hash never reaches a server or a referrer) ----
+  const hash = location.hash.replace(/^#/, "");
+  const preview = hash === "preview";
+  const token = preview ? "" : (new URLSearchParams(hash).get("k") || (/^[A-Za-z0-9]{16,64}$/.test(hash) ? hash : "") || new URLSearchParams(location.search).get("k") || "");
+
+  async function call(body, bearer) {
+    const headers = { "Content-Type": "application/json" };
+    if (bearer) headers.Authorization = "Bearer " + bearer;
+    const res = await fetch(FN, { method: "POST", headers, body: JSON.stringify(body), keepalive: body.action === "event" });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) { const e = new Error(j.error || ("HTTP " + res.status)); e.code = j.error; e.status = res.status; throw e; }
+    return j;
+  }
+
+  function closed(title, msg) {
+    $("#gateBody").innerHTML = "";
+    const eb = document.createElement("div"); eb.className = "eyebrow"; eb.textContent = "Private investor room";
+    const h = document.createElement("h1"); h.className = "serif"; h.textContent = title;
+    const p = document.createElement("p"); p.className = "soft"; p.textContent = msg;
+    const a = document.createElement("a"); a.href = "mailto:brice@jshinnovations.com"; a.textContent = "brice@jshinnovations.com"; a.style.fontSize = "15px";
+    $("#gateBody").append(eb, h, p, a);
+  }
+
+  // ---- tracking ----
+  let visit = null, lastBeat = Date.now();
+  const sent = new Set();
+  function track(kind, detail) {
+    if (preview || !visit) return;
+    if (kind === "section") { if (sent.has(detail)) return; sent.add(detail); }
+    call({ action: "event", token, visit_id: visit, kind, detail }).catch(() => {});
+  }
+  function beat() {
+    if (preview || !visit) return;
+    const secs = Math.round((Date.now() - lastBeat) / 1000);
+    lastBeat = Date.now();
+    if (secs >= 3) call({ action: "event", token, visit_id: visit, kind: "heartbeat", detail: Math.min(secs, 60) }).catch(() => {});
+  }
+  function startTracking() {
+    lastBeat = Date.now();
+    setInterval(() => { if (document.visibilityState === "visible") beat(); }, 30000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") beat(); else lastBeat = Date.now(); });
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) track("section", e.target.id); }), { threshold: 0.35 });
+    document.querySelectorAll("section.s").forEach((s) => io.observe(s));
+  }
+
+  // ---- building the room from content (text only; nothing is parsed as HTML) ----
+  function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function head(eyebrow, title) { const h = el("div", "head"); if (eyebrow) h.append(el("div", "eyebrow", eyebrow)); if (title) h.append(el("h2", "serif", title)); return h; }
+  function section(id, label) { const s = el("section", "s"); s.id = id; s.dataset.label = label; return s; }
+  function tiles(list) { const t = el("div", "tiles"); list.forEach((x) => { const d = el("div", "tile"); d.append(el("span", "v", x.value), el("span", "l", x.label)); t.append(d); }); return t; }
+  const safeUrl = (u) => (typeof u === "string" && /^https:\/\//i.test(u) ? u : null);
+
+  function build(c, who) {
+    const main = $("#main"), nav = $("#nav");
+    main.innerHTML = ""; nav.innerHTML = "";
+    const add = (s) => { main.append(s); const a = el("a", null, s.dataset.label); a.href = "#" + s.id; nav.append(a); };
+
+    // story
+    if (c.hero) {
+      const s = section("story", "Story"); s.classList.add("hero");
+      if (c.hero.eyebrow) s.append(el("div", "eyebrow", c.hero.eyebrow));
+      const h1 = el("h1", "serif", (c.hero.title || "") + " ");
+      if (c.hero.titleEm) h1.append(el("em", null, c.hero.titleEm));
+      s.append(h1);
+      if (c.hero.lede) s.append(el("p", "lede", c.hero.lede));
+      if (Array.isArray(c.stats) && c.stats.length) { const t = tiles(c.stats); t.style.marginTop = "16px"; s.append(t); }
+      add(s);
+    }
+    // portfolio
+    if (c.portfolio?.items?.length) {
+      const s = section("portfolio", "Portfolio");
+      s.append(head(c.portfolio.eyebrow, c.portfolio.title));
+      const g = el("div", "cards");
+      c.portfolio.items.forEach((p) => {
+        const d = el("div", "card"), r = el("div", "row");
+        const t = el("span", "tag" + (p.status === "live" ? "" : " dev"));
+        t.append(el("span", "sq" + (p.status === "live" ? "" : " white")), document.createTextNode(p.tag || (p.status === "live" ? "Live" : "In development")));
+        r.append(el("span", "n", p.name), t);
+        d.append(r); if (p.desc) d.append(el("p", null, p.desc));
+        g.append(d);
+      });
+      s.append(g); add(s);
+    }
+    // product
+    if (c.product) {
+      const s = section("product", "Product");
+      const h = head(c.product.eyebrow, c.product.title);
+      if (c.product.lede) h.append(el("p", "lede", c.product.lede));
+      s.append(h);
+      const pts = el("div", "points");
+      (c.product.points || []).forEach((p) => { const d = el("div", "pt"), tx = el("div"); tx.append(el("b", null, p.title), el("p", null, p.text)); d.append(el("span", "sq" + (p.accent ? "" : " white")), tx); pts.append(d); });
+      const vid = safeUrl(c.product.videoUrl);
+      if (vid) {
+        const sp = el("div", "split"), m = el("div", "main");
+        const v = document.createElement("video"); v.className = "video"; v.controls = true; v.preload = "metadata"; v.src = vid; v.setAttribute("playsinline", "");
+        if (safeUrl(c.product.videoPoster)) v.poster = c.product.videoPoster;
+        v.addEventListener("play", () => track("video", "demo"), { once: true });
+        m.append(v); const sd = el("div", "side"); sd.append(pts); sp.append(m, sd); s.append(sp);
+      } else { pts.classList.add("wide"); s.append(pts); }
+      add(s);
+    }
+    // model
+    if (c.model) {
+      const m = c.model, s = section("model", "Model");
+      s.append(head(m.eyebrow, m.title));
+      const sp = el("div", "split"); sp.style.alignItems = "flex-end";
+      if (m.chart?.bars?.length) {
+        const f = el("figure", "main"); f.append(el("figcaption", null, m.chart.caption || ""));
+        const max = Math.max(...m.chart.bars.map((b) => Number(b.value) || 0)) || 1;
+        const bars = el("div", "bars"), xl = el("div", "xlabels");
+        bars.style.gridTemplateColumns = xl.style.gridTemplateColumns = `repeat(${m.chart.bars.length}, minmax(0, 1fr))`;
+        bars.setAttribute("role", "img");
+        bars.setAttribute("aria-label", (m.chart.caption || "Chart") + ": " + m.chart.bars.map((b) => `${b.label} ${b.value}`).join(", "));
+        m.chart.bars.forEach((b) => {
+          const v = Number(b.value) || 0, d = el("div", "bar" + (v === max ? " top" : ""));
+          const i = el("i"); i.style.height = Math.max(3, Math.round((v / max) * 260)) + "px";
+          d.append(el("span", null, String(b.value)), i); bars.append(d); xl.append(el("span", null, b.label));
+        });
+        f.append(bars, xl); sp.append(f);
+      }
+      if (m.table?.rows?.length) {
+        const w = el("div", "side tbl"), t = el("table");
+        t.append(el("caption", null, m.table.caption || ""));
+        const th = el("thead"), tr = el("tr"); tr.append(el("th")); (m.table.cols || []).forEach((cn) => { const x = el("th", null, cn); x.scope = "col"; tr.append(x); }); th.append(tr); t.append(th);
+        const tb = el("tbody");
+        m.table.rows.forEach((r) => { const row = el("tr"); r.forEach((cell, i) => { const x = el(i ? "td" : "th", null, cell); if (!i) x.scope = "row"; row.append(x); }); tb.append(row); });
+        t.append(tb); w.append(t); sp.append(w);
+      }
+      s.append(sp);
+      if (m.notes?.length) { const n = el("div", "notes"); m.notes.forEach((x) => { const d = el("div"); d.append(el("b", null, x.title), el("p", null, x.text)); n.append(d); }); s.append(n); }
+      add(s);
+    }
+    // founder + traction
+    if (c.founder) {
+      const f = c.founder, s = section("team", "Founder");
+      s.append(head(f.eyebrow, f.title));
+      const p = el("div", "person");
+      const photo = safeUrl(f.photoUrl);
+      if (photo) { const im = document.createElement("img"); im.className = "avatar"; im.src = photo; im.alt = f.name || ""; p.append(im); } else { const a = el("div", "avatar"); a.setAttribute("aria-hidden", "true"); p.append(a); }
+      const tx = el("div"); tx.append(el("b", null, f.name), el("span", "soft", f.role)); if (f.bio) tx.append(el("p", null, f.bio));
+      p.append(tx); s.append(p);
+      if (Array.isArray(c.traction) && c.traction.length) s.append(tiles(c.traction));
+      add(s);
+    }
+    // documents
+    const docs = (c.docs || []).filter((d) => safeUrl(d.url));
+    if (docs.length) {
+      const s = section("docs", "Documents");
+      s.append(head("Documents", "Everything, for your eyes only."));
+      const l = el("div", "docs");
+      docs.forEach((d) => { const a = el("a", "doc"); a.href = d.url; a.target = "_blank"; a.rel = "noopener noreferrer"; const tx = el("span"); tx.append(el("b", null, d.title), el("span", "soft small", d.meta || "")); a.append(tx, el("span", null, "Open")); a.addEventListener("click", () => track("doc", d.title)); l.append(a); });
+      s.append(l); add(s);
+    }
+    // contact
+    if (c.contact) {
+      const s = section("contact", "Contact"); s.style.borderBottom = "0";
+      const box = el("div", "contact"), tx = el("div");
+      tx.append(el("span", "t serif", c.contact.title), el("span", "soft small", c.contact.text));
+      const email = /^[^@\s]+@[^@\s]+$/.test(c.contact.email || "") ? c.contact.email : "brice@jshinnovations.com";
+      const a = el("a", "btn", c.contact.cta || "Book a call");
+      a.href = "mailto:" + email + "?subject=" + encodeURIComponent("Investor room — " + (who?.name || "call"));
+      a.addEventListener("click", () => track("call", "contact"));
+      box.append(tx, a); s.append(box); main.append(s);
+    }
+    $("#disclaimer").textContent = c.disclaimer || "";
+    document.title = "Investor room — JSH Innovations";
+  }
+
+  function showRoom(c, who) {
+    build(c, who);
+    $("#whoLine").textContent = preview ? "Preview" : ("Private to " + who.name + (who.firm ? " · " + who.firm : ""));
+    $("#gate").classList.add("hide"); $("#welcome").classList.add("hide"); $("#room").classList.remove("hide");
+    if (preview) $("#previewBar").classList.remove("hide"); else startTracking();
+    window.scrollTo(0, 0);
+  }
+
+  async function boot() {
+    if (preview) {
+      let s = null; try { s = JSON.parse(store.get(AUTH_KEY) || "null"); } catch {}
+      if (!s?.access_token) return closed("Sign in first", "Open the admin page, sign in, then use Preview.");
+      try { const r = await call({ action: "admin_preview" }, s.access_token); return showRoom(r.content || {}, null); }
+      catch (e) { return closed("Sign in again", "Your sign-in has expired. Open the admin page and sign in, then use Preview."); }
+    }
+    if (!token) return closed("This room is private.", "It opens only from the personal link Brice sent you. Need a new one? Write to Brice.");
+    let r;
+    try { r = await call({ action: "open", token }); }
+    catch (e) {
+      if (e.code === "expired") return closed("This link has expired.", "Write to Brice for a fresh one.");
+      if (e.code === "off") return closed("This link is no longer active.", "Write to Brice if you'd like access again.");
+      if (e.status === 404) return closed("We couldn't find that link.", "Check that you used the whole link from Brice's email.");
+      return closed("The room didn't open.", "Something went wrong on our side. Try again in a minute, or write to Brice.");
+    }
+    visit = r.visit_id;
+    const okKey = "jsh-inv-ok-" + token.slice(0, 8);
+    if (store.get(okKey) === "1") return showRoom(r.content || {}, r.investor);
+    $("#wName").textContent = (r.investor.first_name || "there") + ".";
+    $("#wFoot").textContent = (r.expires_at ? "Link expires " + new Date(r.expires_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + " · " : "") + "Questions: brice@jshinnovations.com";
+    $("#gate").classList.add("hide"); $("#welcome").classList.remove("hide");
+    $("#agree").addEventListener("change", (ev) => { $("#enter").disabled = !ev.target.checked; });
+    $("#enter").addEventListener("click", () => { store.set(okKey, "1"); track("accept", "confidential"); showRoom(r.content || {}, r.investor); });
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

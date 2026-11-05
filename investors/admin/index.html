@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investor links — JSH Innovations</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#111b38; --navy-2:#162144; --ink:#f3f2f2; --ink-soft:#aab1c9; --line:#2a3560; --red:#ec3013; --bad:#ff8a73; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--navy); color: var(--ink); font-family: 'Instrument Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--ink); }
+  .serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+  .soft { color: var(--ink-soft); }
+  .small { font-size: 13px; }
+  .hide { display: none !important; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+  header { border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 16px; padding-bottom: 16px; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+  main.wrap { padding-top: 40px; padding-bottom: 64px; display: flex; flex-direction: column; gap: 32px; }
+  h1 { margin: 0; font-size: 44px; }
+  h2 { margin: 0; font-size: 18px; font-weight: 600; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .tile { background: var(--navy-2); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .tile .v { font-family: 'Instrument Serif', serif; font-size: 34px; line-height: 1; }
+  .tile .l { font-size: 14px; color: var(--ink-soft); }
+  .panel { background: var(--navy-2); border: 1px solid var(--line); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .fields { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .f { display: flex; flex-direction: column; gap: 6px; flex: 1 1 200px; }
+  .f.narrow { flex: 0 1 160px; }
+  .f label { font-size: 13px; color: var(--ink-soft); }
+  input, select, textarea { height: 44px; padding: 0 12px; background: var(--navy); border: 1px solid var(--line); color: var(--ink); font: inherit; font-size: 15px; border-radius: 0; }
+  textarea { height: 420px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.5; resize: vertical; width: 100%; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn { height: 44px; padding: 0 20px; background: var(--ink); color: var(--navy); border: 0; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .ghost { height: 36px; padding: 0 12px; background: transparent; border: 1px solid var(--line); color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+  .ghost:hover { border-color: var(--ink-soft); }
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .tablebox { overflow-x: auto; border: 1px solid var(--line); }
+  table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 14px; }
+  thead tr { background: var(--navy-2); }
+  th { text-align: left; padding: 12px 16px; font-weight: 600; }
+  td { padding: 14px 16px; border-top: 1px solid var(--line); vertical-align: top; }
+  td.num, th.num { text-align: right; }
+  .state { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .dot { width: 8px; height: 8px; display: inline-block; background: var(--ink); }
+  .dot.red { background: var(--red); }
+  .dot.off { background: transparent; border: 1px solid var(--ink-soft); }
+  .detail td { background: var(--navy-2); }
+  .detail ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.7; color: var(--ink-soft); }
+  .created { border: 1px solid var(--ink-soft); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .linkbox { display: flex; gap: 8px; flex-wrap: wrap; }
+  .linkbox input { flex: 1 1 360px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+  .msg { font-size: 14px; }
+  .msg.bad { color: var(--bad); }
+  .empty { padding: 28px 16px; text-align: center; color: var(--ink-soft); }
+  .signin { max-width: 420px; margin: 72px auto; padding: 0 24px; display: flex; flex-direction: column; gap: 20px; }
+  .signin form { display: flex; flex-direction: column; gap: 14px; }
+  .signin .f { flex: none; }
+  details > summary { cursor: pointer; font-weight: 600; font-size: 18px; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "+ "; color: var(--ink-soft); }
+  details[open] > summary::before { content: "− "; }
+  @media (max-width: 720px) { .wrap { padding: 0 20px; } h1 { font-size: 34px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 100 100"><rect x="30" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="30" width="12" height="12" fill="#f3f2f2"/><rect x="44" y="44" width="12" height="12" fill="#ec3013"/><rect x="30" y="58" width="12" height="12" fill="#f3f2f2"/><rect x="58" y="58" width="12" height="12" fill="#f3f2f2"/></symbol>
+</svg>
+<header><div class="wrap">
+  <div class="brand"><svg width="32" height="32" role="img" aria-label="JSH mark"><use href="#mark"/></svg><span>Investor room · Admin</span></div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a class="ghost hide" id="previewLink" href="/investors/#preview" target="_blank" rel="noopener">Preview the room</a>
+    <span class="small soft" id="who"></span>
+    <button class="ghost hide" id="signout" type="button">Sign out</button>
+  </div>
+</div></header>
+
+<div id="signinView" class="signin hide">
+  <h1 class="serif">Sign in</h1>
+  <p class="soft" style="margin:0">Use your JSH owner account, the same one as Expenses.</p>
+  <form id="signinForm">
+    <div class="f"><label for="em">Email</label><input id="em" type="email" autocomplete="username" required></div>
+    <div class="f"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required></div>
+    <button class="btn" type="submit" id="signinBtn">Sign in</button>
+    <span class="msg bad" id="signinMsg" role="alert"></span>
+  </form>
+</div>
+
+<main class="wrap hide" id="app">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <h1 class="serif">Who's looking</h1>
+    <p class="soft" style="margin:0">One private link per investor. Turn any link off at any time.</p>
+  </div>
+  <div class="tiles" id="tiles"></div>
+
+  <section class="panel" aria-labelledby="newH">
+    <h2 id="newH">New investor link</h2>
+    <form id="newForm" class="fields">
+      <div class="f"><label for="nName">Name</label><input id="nName" required placeholder="Full name"></div>
+      <div class="f"><label for="nFirm">Firm</label><input id="nFirm" placeholder="Firm or fund"></div>
+      <div class="f"><label for="nEmail">Email</label><input id="nEmail" type="email" placeholder="name@firm.com"></div>
+      <div class="f narrow"><label for="nExp">Expires</label><select id="nExp"><option value="30">In 30 days</option><option value="14">In 14 days</option><option value="90">In 90 days</option><option value="">Never</option></select></div>
+      <button class="btn" type="submit" id="createBtn">Create link</button>
+    </form>
+    <span class="msg bad" id="newMsg" role="alert"></span>
+    <div class="created hide" id="created">
+      <span id="createdFor" style="font-weight:600"></span>
+      <div class="linkbox"><input id="createdLink" readonly aria-label="The new private link"><button class="ghost" type="button" id="copyNew">Copy link</button><a class="ghost" id="mailNew" href="#">Email it</a></div>
+      <span class="small soft">Send it yourself. Anyone holding this link can open the room until it expires or you turn it off.</span>
+    </div>
+  </section>
+
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Investor</th><th>Last opened</th><th class="num">Visits</th><th class="num">Time in room</th><th>Read</th><th>Link</th><th class="num"><span class="soft small">Actions</span></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <details class="panel" id="contentPanel">
+    <summary>Room content</summary>
+    <p class="small soft" style="margin:0">Everything investors read. It lives in the database, never in the website's public code. Edit, then Save; open "Preview the room" to check. To show traction tiles or documents, add items to <code>traction</code> ([{"value":"120","label":"Paying agents"}]) or <code>docs</code> ([{"title":"Investor deck","meta":"PDF","url":"https://…"}]). Founder <code>bio</code> and <code>photoUrl</code>, and product <code>videoUrl</code>, show once filled.</p>
+    <textarea id="contentBox" spellcheck="false" aria-label="Room content as JSON"></textarea>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn" type="button" id="saveContent">Save content</button>
+      <button class="ghost" type="button" id="formatContent">Tidy</button>
+      <span class="msg" id="contentMsg" role="status"></span>
+    </div>
+  </details>
+</main>
+
+<script>
+(() => {
+  const SB_URL = "https://cfhualtyvccfjxenvkud.supabase.co";
+  const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmaHVhbHR5dmNjZmp4ZW52a3VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MTk2NjEsImV4cCI6MjEwODA5NTY2MX0.WOnjua0fxslAfkuHz_O8yKndfq86YDH4KLlqjqtdics"; // public anon key (same as /expenses)
+  const FN = SB_URL + "/functions/v1/investor-room";
+  const AUTH_KEY = "jsh-expenses-auth";
+  const ROOM = location.origin + "/investors/#k=";
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+
+  // ---- session (shared with /expenses) ----
+  const readS = () => { try { return JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); } catch { return null; } };
+  const saveS = (s) => { try { localStorage.setItem(AUTH_KEY, JSON.stringify(s)); } catch {} };
+  async function authFetch(path, body) {
+    const r = await fetch(SB_URL + path, { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(/invalid/i.test(j.error_description || j.msg || "") ? "Wrong email or password." : (j.error_description || j.msg || "Sign-in failed (" + r.status + ")"));
+    j.expires_at = j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600);
+    saveS(j); return j;
+  }
+  async function token() {
+    let s = readS();
+    if (!s?.access_token) return null;
+    if ((s.expires_at || 0) - 60 < Date.now() / 1000) {
+      if (!s.refresh_token) return null;
+      try { s = await authFetch("/auth/v1/token?grant_type=refresh_token", { refresh_token: s.refresh_token }); } catch { return null; }
+    }
+    return s.access_token;
+  }
+  async function api(body) {
+    const t = await token();
+    if (!t) { showSignin(); throw new Error("Sign in required"); }
+    const r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401) { showSignin(j.error); throw new Error(j.error || "Sign in required"); }
+    if (!r.ok) throw new Error(j.error || "Request failed (" + r.status + ")");
+    return j;
+  }
+
+  function showSignin(msg) {
+    $("#app").classList.add("hide"); $("#signinView").classList.remove("hide");
+    $("#signout").classList.add("hide"); $("#previewLink").classList.add("hide"); $("#who").textContent = "";
+    if (msg && msg !== "Sign in required") $("#signinMsg").textContent = msg;
+  }
+  $("#signinForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("#signinMsg").textContent = ""; $("#signinBtn").disabled = true;
+    try { await authFetch("/auth/v1/token?grant_type=password", { email: $("#em").value.trim(), password: $("#pw").value }); $("#pw").value = ""; await start(); }
+    catch (err) { $("#signinMsg").textContent = err.message; }
+    finally { $("#signinBtn").disabled = false; }
+  });
+  $("#signout").addEventListener("click", () => { try { localStorage.removeItem(AUTH_KEY); } catch {} showSignin(); });
+
+  // ---- formatting ----
+  const when = (iso) => { if (!iso) return "Not opened"; const d = new Date(iso), now = new Date(); const t = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); if (d.toDateString() === now.toDateString()) return "Today, " + t; const y = new Date(now - 864e5); if (d.toDateString() === y.toDateString()) return "Yesterday, " + t; return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + t; };
+  const dur = (s) => !s ? "–" : s < 60 ? s + " sec" : s < 3600 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " hr";
+  const LABEL = { story: "Story", portfolio: "Portfolio", product: "Product", model: "Model", team: "Founder", docs: "Documents", contact: "Contact" };
+
+  let links = [];
+  async function load() {
+    const r = await api({ action: "admin_list" });
+    links = r.links || [];
+    const opened = links.filter((l) => l.visits > 0).length;
+    const model = links.filter((l) => (l.sections || []).includes("model")).length;
+    const calls = links.filter((l) => l.call_requested_at).length;
+    $("#tiles").innerHTML = "";
+    [[links.length, "Links sent"], [opened, "Opened"], [model, "Read the model"], [calls, "Asked for a call"]].forEach(([v, l]) => { const d = el("div", "tile"); d.append(el("span", "v", String(v)), el("span", "l", l)); $("#tiles").append(d); });
+    const tb = $("#rows"); tb.innerHTML = "";
+    if (!links.length) { const tr = el("tr"), td = el("td", "empty", "No links yet. Create the first one above."); td.colSpan = 7; tr.append(td); tb.append(tr); return; }
+    links.forEach((l) => {
+      const tr = el("tr");
+      const who = el("td"); who.append(el("div", null, l.name)); who.firstChild.style.fontWeight = "600"; if (l.firm) who.append(el("div", "soft small", l.firm));
+      const read = (l.sections || []).filter((s) => s !== "story" && s !== "contact").map((s) => LABEL[s] || s);
+      const st = el("td"), sp = el("span", "state");
+      const label = l.state === "off" ? "Turned off" : l.state === "expired" ? "Expired" : l.call_requested_at ? "Asked for a call" : l.visits ? "Active" : "Not opened yet";
+      sp.append(el("span", "dot" + (l.state !== "active" ? " off" : l.call_requested_at ? " red" : "")), document.createTextNode(label));
+      if (l.state !== "active") sp.classList.add("soft");
+      st.append(sp);
+      if (l.expires_at && l.state === "active") st.append(el("div", "soft small", "Expires " + new Date(l.expires_at).toLocaleDateString([], { month: "short", day: "numeric" })));
+      const act = el("td"), box = el("div", "row-actions");
+      const copy = el("button", "ghost", "Copy link"); copy.type = "button"; copy.onclick = () => copyText(ROOM + l.token, copy);
+      const tog = el("button", "ghost", l.state === "off" ? "Turn on" : "Turn off"); tog.type = "button";
+      tog.onclick = async () => { tog.disabled = true; try { await api({ action: "admin_update", id: l.id, active: l.state === "off" }); await load(); } catch (e) { alertRow(e.message); } };
+      const det = el("button", "ghost", "Details"); det.type = "button"; det.setAttribute("aria-expanded", "false");
+      det.onclick = () => toggleDetail(l, tr, det);
+      box.append(copy, tog, det); act.append(box);
+      const c = (t, cls) => el("td", cls, t);
+      tr.append(who, c(when(l.last_seen_at), l.last_seen_at ? null : "soft"), c(String(l.visits), "num"), c(dur(l.seconds), "num"), c(read.length ? read.join(" · ") : "–", "soft"), st, act);
+      tb.append(tr);
+    });
+  }
+  function alertRow(msg) { const tb = $("#rows"), tr = el("tr"), td = el("td", "msg bad", msg); td.colSpan = 7; tr.append(td); tb.prepend(tr); }
+  async function toggleDetail(l, tr, btn) {
+    const next = tr.nextElementSibling;
+    if (next && next.classList.contains("detail")) { next.remove(); btn.setAttribute("aria-expanded", "false"); return; }
+    btn.setAttribute("aria-expanded", "true");
+    const row = el("tr", "detail"), td = el("td", null, "Loading…"); td.colSpan = 7; row.append(td); tr.after(row);
+    try {
+      const d = await api({ action: "admin_detail", id: l.id });
+      td.textContent = "";
+      if (l.email || l.note) td.append(el("p", "small soft", [l.email, l.note].filter(Boolean).join(" · ")));
+      if (!d.visits.length) { td.append(el("p", "small soft", "No visits yet. Created " + when(l.created_at) + ".")); return; }
+      const ul = el("ul");
+      d.visits.forEach((v) => {
+        const evs = d.events.filter((e) => e.visit_id === v.id && e.kind !== "open").reverse().map((e) => e.kind === "section" ? (LABEL[e.detail] || e.detail) : e.kind === "accept" ? "agreed to confidentiality" : e.kind === "call" ? "clicked Book a call" : e.kind === "doc" ? "opened " + e.detail : e.kind === "video" ? "played the demo" : e.kind);
+        const dev = /iPhone|iPad/.test(v.user_agent) ? "iPhone/iPad" : /Android/.test(v.user_agent) ? "Android" : /Mac/.test(v.user_agent) ? "Mac" : /Windows/.test(v.user_agent) ? "Windows" : "browser";
+        ul.append(el("li", null, when(v.started_at) + " · " + dur(v.seconds) + " · " + dev + (evs.length ? " · " + [...new Set(evs)].join(", ") : "")));
+      });
+      td.append(ul);
+    } catch (e) { td.textContent = e.message; td.className = "msg bad"; }
+  }
+  async function copyText(t, btn) {
+    try { await navigator.clipboard.writeText(t); } catch { const i = el("input"); i.value = t; document.body.append(i); i.select(); document.execCommand("copy"); i.remove(); }
+    const was = btn.textContent; btn.textContent = "Copied"; setTimeout(() => (btn.textContent = was), 1500);
+  }
+
+  $("#newForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("#newMsg").textContent = ""; $("#createBtn").disabled = true;
+    try {
+      const r = await api({ action: "admin_create", name: $("#nName").value, firm: $("#nFirm").value, email: $("#nEmail").value, expires_days: $("#nExp").value });
+      const url = ROOM + r.link.token;
+      $("#createdFor").textContent = "Link for " + r.link.name + (r.link.firm ? " · " + r.link.firm : "");
+      $("#createdLink").value = url;
+      const first = r.link.name.trim().split(/\s+/)[0];
+      $("#mailNew").href = "mailto:" + encodeURIComponent(r.link.email || "") + "?subject=" + encodeURIComponent("JSH Innovations — your private investor room") + "&body=" + encodeURIComponent(`Hi ${first},\n\nHere's your private link to the JSH Innovations investor room. It's for you alone, so please don't forward it.\n\n${url}\n\nHappy to walk you through it on a call.\n\nBrice`);
+      $("#created").classList.remove("hide");
+      $("#newForm").reset();
+      await load();
+    } catch (err) { $("#newMsg").textContent = err.message; }
+    finally { $("#createBtn").disabled = false; }
+  });
+  $("#copyNew").addEventListener("click", () => copyText($("#createdLink").value, $("#copyNew")));
+
+  // ---- content ----
+  $("#contentPanel").addEventListener("toggle", async () => {
+    if (!$("#contentPanel").open || $("#contentBox").dataset.loaded) return;
+    $("#contentMsg").textContent = "Loading…";
+    try { const r = await api({ action: "admin_content_get" }); $("#contentBox").value = JSON.stringify(r.content, null, 2); $("#contentBox").dataset.loaded = "1"; $("#contentMsg").textContent = r.updated_at ? "Last saved " + when(r.updated_at) : ""; }
+    catch (e) { $("#contentMsg").textContent = e.message; $("#contentMsg").className = "msg bad"; }
+  });
+  $("#formatContent").addEventListener("click", () => { try { $("#contentBox").value = JSON.stringify(JSON.parse($("#contentBox").value), null, 2); $("#contentMsg").textContent = ""; } catch (e) { $("#contentMsg").textContent = "Not valid JSON: " + e.message; $("#contentMsg").className = "msg bad"; } });
+  $("#saveContent").addEventListener("click", async () => {
+    const m = $("#contentMsg"); m.className = "msg";
+    let c; try { c = JSON.parse($("#contentBox").value); } catch (e) { m.textContent = "Not valid JSON: " + e.message; m.className = "msg bad"; return; }
+    $("#saveContent").disabled = true;
+    try { await api({ action: "admin_content_save", content: c }); m.textContent = "Saved. Investors see it on their next visit."; }
+    catch (e) { m.textContent = e.message; m.className = "msg bad"; }
+    finally { $("#saveContent").disabled = false; }
+  });
+
+  async function start() {
+    const t = await token();
+    if (!t) return showSignin();
+    try {
+      await load();
+      $("#signinView").classList.add("hide"); $("#app").classList.remove("hide");
+      $("#signout").classList.remove("hide"); $("#previewLink").classList.remove("hide");
+      const s = readS(); $("#who").textContent = s?.user?.email || "";
+    } catch (e) { if (!/Sign in/i.test(e.message)) { $("#signinView").classList.remove("hide"); $("#signinMsg").textContent = e.message; } }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
