@@ -192,7 +192,7 @@
   // ---- formatting ----
   const when = (iso) => { if (!iso) return "Not opened"; const d = new Date(iso), now = new Date(); const t = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); if (d.toDateString() === now.toDateString()) return "Today, " + t; const y = new Date(now - 864e5); if (d.toDateString() === y.toDateString()) return "Yesterday, " + t; return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + t; };
   const dur = (s) => !s ? "–" : s < 60 ? s + " sec" : s < 3600 ? Math.round(s / 60) + " min" : (s / 3600).toFixed(1) + " hr";
-  const LABEL = { story: "Story", portfolio: "Portfolio", product: "Product", model: "Model", financials: "Financials", valuation: "Buyout", team: "Founder", docs: "Documents", contact: "Contact" };
+  const LABEL = { story: "Story", portfolio: "Portfolio", product: "Product", model: "Model", market: "Market", disruption: "How we win", competition: "Competition", financials: "Financials", valuation: "Buyout", team: "Founder", docs: "Documents", contact: "Contact" };
   const secLabel = (s) => LABEL[s] || (String(s).startsWith("financials:") ? "Financials (" + String(s).slice(11) + ")" : s);
 
   let links = [];

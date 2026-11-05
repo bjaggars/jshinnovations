@@ -110,6 +110,16 @@
   .val td.big { font-family: 'Instrument Serif', serif; font-size: 22px; }
   .tablewrap { overflow-x: auto; }
   .fine { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink-soft); max-width: 80ch; }
+  .matrix { min-width: 900px; }
+  .matrix th, .matrix td { text-align: left; white-space: normal; vertical-align: top; padding: 12px 10px; font-size: 14px; line-height: 1.45; }
+  .matrix thead th { font-size: 13px; }
+  .matrix .us { background: rgba(243,242,242,.06); color: var(--ink); font-weight: 600; }
+  .matrix thead th.us { border-top: 2px solid var(--red); }
+  .notes.three { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 32px; }
+  @media (max-width: 1399px) { .top .who { display: none; } nav.sections a { padding: 10px 9px; } }
+  .sources { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; }
+  .sources a { color: var(--ink-soft); }
+  .sources a:hover { color: var(--ink); }
   .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
   .notes b { display: block; margin-bottom: 6px; }
   .notes p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
@@ -262,7 +272,35 @@
   function build(c, who) {
     const main = $("#main"), nav = $("#nav");
     main.innerHTML = ""; nav.innerHTML = "";
-    const add = (s) => { main.append(s); const a = el("a", null, s.dataset.label); a.href = "#" + s.id; nav.append(a); };
+    // extra sections from content (market, disruption, competition…), each placed after a named section
+    const extras = Array.isArray(c.extra) ? c.extra.filter((x) => x && /^[a-z][a-z0-9-]{1,30}$/.test(x.id || "")) : [];
+    const placed = new Set();
+    const addOne = (s) => { main.append(s); const a = el("a", null, s.dataset.label); a.href = "#" + s.id; nav.append(a); };
+    const add = (s) => { addOne(s); extras.filter((x) => x.after === s.id && !placed.has(x.id)).forEach((x) => { placed.add(x.id); add(buildExtra(x)); }); };
+    function buildExtra(x) {
+      const s = section(x.id, x.label || x.title || x.id);
+      const h = head(x.eyebrow, x.title); if (x.lede) h.append(el("p", "lede", x.lede)); s.append(h);
+      if (Array.isArray(x.tiles) && x.tiles.length) s.append(tiles(x.tiles));
+      if (Array.isArray(x.points) && x.points.length) { const n = el("div", "notes" + (x.points.length % 3 === 0 ? " three" : "")); x.points.forEach((p) => { const d = el("div"); d.append(el("b", null, p.title), el("p", null, p.text)); n.append(d); }); s.append(n); }
+      (x.tables || []).forEach((tbl) => {
+        const w = el("div", "tablewrap"), t = el("table", tbl.matrix ? "matrix" : "val");
+        if (tbl.caption) t.append(el("caption", null, tbl.caption));
+        const us = Number.isInteger(tbl.highlight) ? tbl.highlight : -1;
+        const th = el("thead"), tr = el("tr"); tr.append(el("th")); (tbl.cols || []).forEach((cn, i) => { const z = el("th", i === us ? "us" : null, cn); z.scope = "col"; tr.append(z); }); th.append(tr); t.append(th);
+        const tb = el("tbody");
+        (tbl.rows || []).forEach((r) => { const row = el("tr"); r.forEach((cell, i) => { const z = el(i ? "td" : "th", i && i - 1 === us ? "us" : (!tbl.matrix && i ? "big" : null), cell); if (!i) z.scope = "row"; row.append(z); }); tb.append(row); });
+        t.append(tb); w.append(t); s.append(w);
+      });
+      if (x.note) s.append(el("p", "fine", x.note));
+      const src = (x.sources || []).filter((q) => safeUrl(q.url));
+      if (src.length) {
+        const ul = el("ul", "sources"); ul.setAttribute("aria-label", "Sources");
+        ul.append(el("li", "soft", "Sources:"));
+        src.forEach((q) => { const li = el("li"), a = el("a", null, q.title); a.href = q.url; a.target = "_blank"; a.rel = "noopener noreferrer"; li.append(a); ul.append(li); });
+        s.append(ul);
+      }
+      return s;
+    }
 
     // story
     if (c.hero) {
@@ -423,7 +461,7 @@
       a.addEventListener("click", () => track("call", "contact"));
       box.append(tx, a); s.append(box); main.append(s);
     }
-    $("#disclaimer").textContent = c.disclaimer || "";
+    $("#disclaimer").textContent = (who ? "Prepared for " + who.name + (who.firm ? ", " + who.firm : "") + ". " : "") + (c.disclaimer || "");
     document.title = "Investor room — JSH Innovations";
   }
 
