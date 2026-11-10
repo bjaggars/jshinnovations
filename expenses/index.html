@@ -315,6 +315,7 @@ textarea.in{min-height:70px;resize:vertical}
 .filters{display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:8px}
 @media (max-width:760px){.filters{grid-template-columns:1fr 1fr}.filters .q{grid-column:1/-1}}
 .filters .in{min-height:38px;padding:7px 10px;font-size:14px}
+@media (max-width:720px){.tb-strip{grid-template-columns:repeat(3,1fr)}.tb-strip>div{padding:12px 10px}.tb-strip>div+div{border-top:0;border-left:1px solid var(--line)}.tb-strip .lbl{font-size:10px}.tb-strip .tb-mid{font-size:19px}}
 </style>
 </head>
 <body>
@@ -999,6 +1000,18 @@ function recurring() {
   }
   return { months, list: out.sort((a, b) => (b.gaps.length - a.gaps.length) || (b.typical - a.typical)) };
 }
+function reportsTaxStrip() {
+  const has = (S.income || []).some((i) => yOf(i.date) === S.year) || (S.settings && S.settings.tax);
+  if (!has) return "";
+  let c; try { c = tbCompute(); } catch (e) { return ""; }
+  const pct = (c.rate * 100).toFixed(1) + "%";
+  const owe = c.owed >= 0 ? money(c.owed, false) : money(-c.owed, false) + " refund";
+  return `<section class="tb-verdict tb-strip" style="margin-bottom:12px">
+    <div><span class="lbl"><span class="tb-hide-sm">Tax Buddy · ${c.Y} </span>1099 income</span><span class="tb-mid num">${money(c.rev, false)}</span><span class="small muted">${c.inc.length} check${c.inc.length === 1 ? "" : "s"}<span class="tb-hide-sm"> · profit so far ${money(c.rev - c.exp, false)}</span></span></div>
+    <div><span class="lbl">Set aside</span><span class="tb-mid num">${pct}</span><span class="small muted">${money(c.held, false)}<span class="tb-hide-sm"> of what's come in so far</span></span></div>
+    <div><span class="lbl">May owe Apr 15</span><span class="tb-mid num">${owe}</span><span class="small"><a href="#" data-go="taxes">Open Tax Buddy →</a></span></div>
+  </section>`;
+}
 function viewReports() {
   const rows = periodRows(), miles = periodMiles();
   const total = rows.reduce((s, e) => s + (+e.total || 0), 0), ded = rows.reduce((s, e) => s + deductible(e), 0);
@@ -1017,6 +1030,7 @@ function viewReports() {
   const rec = recurring();
   return `<div class="page-head"><div><h2>Reports</h2><p>${esc(periodLabel())} · filed expenses only${inboxN ? ` · <a href="#" data-go="inbox">${inboxN} still in inbox</a>` : ""}</p></div>
     <div class="row wrap"><button class="btn" data-act="xlsx">${IC.dl} Excel for CPA</button><button class="btn primary" data-act="zip">${IC.dl} CPA package (.zip)</button></div></div>
+  ${reportsTaxStrip()}
   <div class="kpis">
     <div class="card kpi"><div class="l">Spent</div><div class="v num">${money(total, false)}</div><div class="s">${rows.length} expenses</div></div>
     <div class="card kpi"><div class="l">Deductible</div><div class="v num">${money(ded + mileDed, false)}</div><div class="s">incl. ${money(mileDed, false)} mileage</div></div>
