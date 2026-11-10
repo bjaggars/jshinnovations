@@ -385,7 +385,7 @@ const IC = {
 /* ========= state ========= */
 const S = {
   session: null, me: null, owner: false,
-  view: "inbox", year: new Date().getFullYear(),
+  view: "reports", year: new Date().getFullYear(),
   cats: [], prods: [], cards: [], settings: {}, expenses: [], receipts: [], mileage: [], lines: [], imports: [], members: [],
   queue: [], ef: { q: "", month: "", cat: "", prod: "", vendor: "", card: "", status: "filed" },
   rp: { period: "year", group: "category" }, urls: new Map(),
@@ -482,7 +482,7 @@ async function boot() {
   const me = wss.find((w) => w.id === S.ws) || wss[0];
   S.me = me; S.owner = me.role === "owner";
   renderWho();
-  S.view = S.owner ? (location.hash.slice(1) || "inbox") : (["reports","expenses","mileage","more","statements","taxes"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "reports");
+  S.view = S.owner ? (location.hash.slice(1) || "reports") : (["reports","expenses","mileage","more","statements","taxes"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "reports");
   await loadAll();
   $("#nav").classList.remove("hide"); $("#yearSel").classList.remove("hide");
   render();
@@ -549,7 +549,7 @@ function inboxCount() { return S.expenses.filter((e) => e.status === "review").l
 function renderNav() {
   const n = inboxCount();
   const items = S.owner
-    ? [["inbox", "Inbox", IC.inbox, n], ["capture", "Add", IC.camera, 0, true], ["expenses", "Expenses", IC.list], ["reports", "Reports", IC.chart], ["taxes", "Tax Buddy", IC.buddy], ["more", "More", IC.more]]
+    ? [["reports", "Reports", IC.chart], ["inbox", "Inbox", IC.inbox, n], ["capture", "Add", IC.camera, 0, true], ["expenses", "Expenses", IC.list], ["taxes", "Tax Buddy", IC.buddy], ["more", "More", IC.more]]
     : [["reports", "Reports", IC.chart], ["expenses", "Expenses", IC.list], ["taxes", "Tax Buddy", IC.buddy], ["mileage", "Mileage", IC.car], ["more", "More", IC.more]];
   const sub = ["mileage", "statements", "settings"];
   $("#nav").innerHTML = items.map(([v, l, ic, badge, cap]) => {
