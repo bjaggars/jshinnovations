@@ -1002,7 +1002,7 @@ function recurring() {
 }
 function reportsTaxStrip() {
   const has = (S.income || []).some((i) => yOf(i.date) === S.year) || (S.settings && S.settings.tax);
-  if (!has) return "";
+  if (!has) return `<div class="card pad row wrap" style="margin-bottom:12px;justify-content:space-between;gap:10px"><div><b>Tax Buddy</b> <span class="muted small">· log 1099 checks and salaries to see what to hold back for April.</span></div><a href="#" class="btn" data-go="taxes">Set up Tax Buddy →</a></div>`;
   let c; try { c = tbCompute(); } catch (e) { return ""; }
   const pct = (c.rate * 100).toFixed(1) + "%";
   const owe = c.owed >= 0 ? money(c.owed, false) : money(-c.owed, false) + " refund";
