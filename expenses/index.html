@@ -1320,7 +1320,7 @@ async function renderWsAdmin() {
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Books</th><th>Owner</th><th>Receipts address</th><th class="r">Expenses</th><th class="r">AI, last 30 days</th></tr></thead><tbody>
     ${list.map((w) => { const o = w.members.find((m) => m.role === "owner"); return `<tr><td><b>${esc(w.name)}</b></td><td class="small">${esc(o?.name || o?.email || "")}</td><td class="small num">${esc(w.receipts_address || "")}</td><td class="r num">${w.expenses}</td><td class="r num">${money(w.ai_30d.est_usd)} <span class="tiny muted">${w.ai_30d.calls} reads</span></td></tr>`; }).join("")}
     </tbody></table></div>
-    <details><summary class="small" style="cursor:pointer;font-weight:600">${IC.plus} New workspace</summary>
+    <details><summary class="small" style="cursor:pointer;font-weight:600">New workspace</summary>
     <form id="wsForm" class="stack" style="margin-top:10px">
       <div class="fgrid"><label class="f"><span>Business name</span><input class="in" name="name" required placeholder="e.g. Ryan's consulting LLC"></label>
       <label class="f"><span>Short name (becomes the receipts address)</span><input class="in" name="slug" required pattern="[a-zA-Z0-9]+" placeholder="ryan"></label>
