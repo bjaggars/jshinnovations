@@ -162,6 +162,7 @@ textarea.in{min-height:70px;resize:vertical}
 .cap-btn b{font-size:17px}
 .cap-btn span{font-size:13px;opacity:.8}
 .cap-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.ws-sel{font:inherit;font-size:12px;color:inherit;background:transparent;border:0;padding:0;max-width:210px;cursor:pointer}
 .cap-wide{grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;font:inherit;color:inherit}
 .cap-wide div{display:flex;flex-direction:column;gap:2px}
 .kinds{display:flex;flex-wrap:wrap;gap:6px}
@@ -428,10 +429,12 @@ async function boot() {
   S.session = session;
   sb.auth.onAuthStateChange((ev, s) => { S.session = s; if (ev === "SIGNED_OUT") location.reload(); });
   if (!session) return renderAuth();
-  const { data: me } = await sb.from("members").select("*").eq("user_id", session.user.id).maybeSingle();
-  if (!me) { $("#main").innerHTML = `<div class="auth"><div class="card stack"><h2>No access</h2><p class="muted">${esc(session.user.email)} isn't set up for these books.</p><button class="btn" data-act="signout">Sign out</button></div></div>`; return; }
+  const [{ data: wss }, { data: cur }, { data: adm }] = await Promise.all([sb.rpc("my_workspaces"), sb.rpc("current_ws"), sb.from("platform_admins").select("user_id").eq("user_id", session.user.id)]);
+  if (!wss?.length) { $("#main").innerHTML = `<div class="auth"><div class="card stack"><h2>No access</h2><p class="muted">${esc(session.user.email)} isn't set up for any books yet.</p><button class="btn" data-act="signout">Sign out</button></div></div>`; return; }
+  S.workspaces = wss; S.ws = cur || wss[0].id; S.admin = !!adm?.length;
+  const me = wss.find((w) => w.id === S.ws) || wss[0];
   S.me = me; S.owner = me.role === "owner";
-  $("#who").textContent = S.owner ? "Owner" : "Accountant · read only";
+  renderWho();
   S.view = S.owner ? (location.hash.slice(1) || "inbox") : (["reports","expenses","mileage","more","statements"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "reports");
   await loadAll();
   $("#nav").classList.remove("hide"); $("#yearSel").classList.remove("hide");
@@ -458,7 +461,7 @@ async function renderAuth() {
   try { needsSetup = (await api("status")).needs_setup; } catch {}
   $("#main").innerHTML = `<div class="auth"><div class="card stack">
     <h2>${needsSetup ? "Set up your books" : "Sign in"}</h2>
-    <p class="muted small">${needsSetup ? "Create the owner account for Jaggars Software Holdings. Use your JSH email." : "Jaggars Software Holdings · expenses"}</p>
+    <p class="muted small">${needsSetup ? "Create the owner account." : "Expenses, receipts and taxes"}</p>
     <form id="authForm" class="stack">
       ${needsSetup ? `<label class="f"><span>Your name</span><input class="in" name="name" autocomplete="name"></label>` : ""}
       <label class="f"><span>Email</span><input class="in" name="email" type="email" autocomplete="username" required></label>
@@ -479,6 +482,14 @@ async function renderAuth() {
 }
 
 /* ========= nav / shell ========= */
+function renderWho() {
+  const el = $("#who"); const role = S.owner ? "Owner" : "Accountant · read only";
+  const w = S.workspaces.find((x) => x.id === S.ws);
+  if (S.workspaces.length > 1) {
+    el.innerHTML = `<select class="ws-sel" id="wsSel" aria-label="Books">${S.workspaces.map((x) => `<option value="${x.id}" ${x.id === S.ws ? "selected" : ""}>${esc(x.name)}${x.role === "cpa" ? " (read only)" : ""}</option>`).join("")}</select>`;
+    $("#wsSel").onchange = async (ev) => { const { error } = await sb.rpc("set_active_workspace", { p_ws: ev.target.value }); if (error) return toast(error.message); location.reload(); };
+  } else el.textContent = `${w?.name || ""} · ${role}`;
+}
 function buildYearSel() {
   const ys = new Set([new Date().getFullYear(), S.year]);
   for (const e of S.expenses) if (e.date) ys.add(yOf(e.date));
@@ -508,6 +519,7 @@ function render() {
   hydrateThumbs($("#main"));
   if (S.view === "capture") wireCapture();
   if (S.view === "settings") wireSettings();
+  if (S.view === "statements") pollStatements();
 }
 
 /* ========= shared selects ========= */
@@ -750,7 +762,7 @@ async function storeFile(file, source, note) {
   const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()))].map((b) => b.toString(16).padStart(2, "0")).join("");
   const { data: dup } = await sb.from("receipts").select("id").eq("file_hash", hash).limit(1);
   if (dup?.length) { const err = new Error("Already uploaded"); err.dup = true; throw err; }
-  const d = new Date(); const path = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${uuid()}.${ext}`;
+  const d = new Date(); const path = `${S.ws}/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${uuid()}.${ext}`;
   const up = await sb.storage.from("receipts").upload(path, blob, { contentType: mime });
   if (up.error) throw new Error("Upload failed: " + up.error.message);
   const { data, error } = await sb.from("receipts").insert({ storage_path: path, mime, file_hash: hash, original_name: file.name || null, source, email_text: note || null }).select("id").single();
@@ -1079,23 +1091,40 @@ function viewMileage() {
 }
 
 /* ========= STATEMENTS ========= */
+const FROM_STMT = "From card statement";
 function viewStatements() {
   const yr = S.lines.filter((l) => yOf(l.date) === S.year);
-  const missing = yr.filter((l) => !l.matched_expense_id && !l.ignored).sort((a, b) => a.date > b.date ? -1 : 1);
-  const matched = yr.filter((l) => l.matched_expense_id).length, ignored = yr.filter((l) => l.ignored).length;
-  return `<div class="page-head"><div><h2>Card statements</h2><p>Import a statement CSV and every charge gets checked against your receipts. What's left is your missing-receipt list.</p></div></div>
+  const isStmt = (e) => (e.notes || "").startsWith(FROM_STMT);
+  const added = S.expenses.filter((e) => isStmt(e) && e.date && yOf(e.date) === S.year);
+  const toFind = added.filter((e) => !e.receipt_id && +e.total >= 75).sort((a, b) => (a.date > b.date ? -1 : 1));
+  const addedIds = new Set(added.map((e) => e.id));
+  const matched = yr.filter((l) => l.matched_expense_id && !addedIds.has(l.matched_expense_id)).length;
+  const personal = yr.filter((l) => l.ignored && l.ignore_reason === "personal").sort((a, b) => (a.date > b.date ? -1 : 1));
+  const open = yr.filter((l) => !l.matched_expense_id && !l.ignored).sort((a, b) => (a.date > b.date ? -1 : 1));
+  const reading = S.imports.filter((i) => i.status === "reading");
+  const lineRow = (l, btns) => `<div class="q-item"><div class="num small" style="width:84px">${fmtDate(l.date)}</div><div class="q-name"><b>${esc(l.description)}</b><div class="small muted">${esc(cardById(l.payment_method_id)?.label || "")}</div></div><b class="num">${money(l.amount)}</b>${S.owner ? btns : ""}</div>`;
+  return `<div class="page-head"><div><h2>Card statements</h2><p>Upload a statement. Charges you already have are matched, missing business charges are added for you, and personal ones are skipped.</p></div></div>
   ${S.owner ? `<div class="card pad stack" style="margin-bottom:12px"><div class="fgrid">
     <label class="f"><span>Card or account</span><select class="in" id="stCard">${cardOpts(null).replace("Card / account…", "Choose…")}<option value="__new">+ Add a card…</option></select></label>
-    <label class="f"><span>Statement CSV (from your bank's website)</span><input class="in" type="file" accept=".csv,text/csv" id="stFile"></label></div>
-    <div class="row"><button class="btn primary" data-act="stimport">${IC.upload} Import & match</button><span class="small muted">Payments and credits are skipped automatically.</span></div></div>` : ""}
-  <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-    <div class="card kpi"><div class="l">Matched</div><div class="v num">${matched}</div><div class="s">charges with a receipt</div></div>
-    <div class="card kpi"><div class="l">Missing</div><div class="v num" style="color:${missing.length ? "var(--bad)" : "inherit"}">${missing.length}</div><div class="s">${money(missing.reduce((s, l) => s + +l.amount, 0))}</div></div>
-    <div class="card kpi"><div class="l">Skipped</div><div class="v num">${ignored}</div><div class="s">payments, personal</div></div></div>
-  <div class="section-title"><h3>Charges without a receipt · ${S.year}</h3>${S.owner && yr.length ? `<button class="btn sm" data-act="rematch">Re-check matches</button>` : ""}</div>
-  <div class="card">${missing.length ? missing.map((l) => `<div class="q-item"><div class="num small" style="width:84px">${fmtDate(l.date)}</div><div class="q-name"><b>${esc(l.description)}</b><div class="small muted">${esc(cardById(l.payment_method_id)?.label || "")}</div></div><b class="num">${money(l.amount)}</b>
-    ${S.owner ? `<button class="btn sm" data-act="lineadd" data-id="${l.id}">Add w/o receipt</button><button class="btn sm ghost" data-act="lineignore" data-id="${l.id}">Personal</button>` : ""}</div>`).join("") : `<div class="empty">${IC.check}<b>${yr.length ? "Every charge has a receipt" : "No statements imported yet"}</b>${yr.length ? "" : "Download a CSV from your card's website and import it above."}</div>`}</div>
-  ${S.imports.length ? `<div class="section-title"><h3>Imports</h3></div><div class="card">${S.imports.map((i) => `<div class="q-item"><div class="q-name"><b>${esc(i.file_name || "Statement")}</b><div class="small muted">${esc(cardById(i.payment_method_id)?.label || "")} · ${new Date(i.created_at).toLocaleDateString()} · ${S.lines.filter((l) => l.import_id === i.id).length} lines</div></div>${S.owner ? `<button class="btn sm ghost danger" data-act="delimport" data-id="${i.id}">Remove</button>` : ""}</div>`).join("")}</div>` : ""}`;
+    <label class="f"><span>Statement (PDF or CSV)</span><input class="in" type="file" accept=".csv,text/csv,.pdf,application/pdf" id="stFile"></label></div>
+    <div class="row wrap"><button class="btn primary" data-act="stimport">${IC.upload} Upload & check</button><span class="small muted">The PDF from Amex works. Their CSV download (Statements & Activity → Download) is the most exact.</span></div></div>` : ""}
+  ${reading.length ? `<div class="card pad row" style="margin-bottom:12px"><div class="spin"></div><div><b>Checking ${esc(reading.map((i) => i.file_name || "statement").join(", "))}…</b><div class="small muted">Reading every charge, matching it to your receipts and adding what's missing. A minute or two.</div></div></div>` : ""}
+  <div class="kpis">
+    <div class="card kpi"><div class="l">Already had</div><div class="v num">${matched}</div><div class="s">matched to a receipt</div></div>
+    <div class="card kpi"><div class="l">Added</div><div class="v num">${added.length}</div><div class="s">${money(added.reduce((t, e) => t + +e.total, 0))} from statements</div></div>
+    <div class="card kpi"><div class="l">Personal</div><div class="v num">${personal.length}</div><div class="s">skipped</div></div>
+    <div class="card kpi"><div class="l">Receipts to find</div><div class="v num" style="color:${toFind.length ? "var(--warn)" : "inherit"}">${toFind.length}</div><div class="s">$75 and up</div></div></div>
+  ${toFind.length ? `<div class="section-title"><h3>Receipts to find · ${S.year}</h3></div><div class="small muted" style="margin:-4px 0 8px">The statement covers charges under $75. For these, the IRS expects the receipt. Forward it to receipts@ and it attaches here on its own, or open one to attach a photo.</div>
+  <div class="card elist">${toFind.map(expRow).join("")}</div>` : ""}
+  ${open.length ? `<div class="section-title"><h3>Not sorted yet</h3></div><div class="card">${open.map((l) => lineRow(l, `<button class="btn sm" data-act="lineadd" data-id="${l.id}">Add</button><button class="btn sm ghost" data-act="lineignore" data-id="${l.id}">Personal</button>`)).join("")}</div>` : ""}
+  ${personal.length ? `<details class="card" style="margin-top:12px"><summary class="pad" style="cursor:pointer"><b>Skipped as personal (${personal.length})</b> <span class="small muted">· tap one that was business to add it</span></summary>${personal.map((l) => lineRow(l, `<button class="btn sm" data-act="lineadd" data-id="${l.id}">It's business</button>`)).join("")}</details>` : ""}
+  ${!yr.length && !reading.length ? `<div class="card empty" style="margin-top:12px">${IC.check}<b>No statements yet</b>Upload this month's Amex statement above.</div>` : ""}
+  ${S.imports.length ? `<div class="section-title"><h3>Uploads</h3></div><div class="card">${S.imports.map((i) => `<div class="q-item"><div class="q-name"><b>${esc(i.file_name || "Statement")}</b><div class="small muted">${esc(cardById(i.payment_method_id)?.label || "")} · ${new Date(i.created_at).toLocaleDateString()} · ${S.lines.filter((l) => l.import_id === i.id).length} charges${i.status === "error" ? ` · <span style="color:var(--bad)">${esc(i.error || "failed")}</span>` : ""}</div></div>${i.status === "reading" ? `<div class="spin"></div>` : i.status === "error" && S.owner ? `<button class="btn sm" data-act="stretry" data-id="${i.id}">Retry</button>` : ""}${S.owner ? `<button class="btn sm ghost danger" data-act="delimport" data-id="${i.id}">Remove</button>` : ""}</div>`).join("")}</div>` : ""}`;
+}
+let stPoll = null;
+function pollStatements() {
+  if (stPoll || !S.imports.some((i) => i.status === "reading")) return;
+  stPoll = setTimeout(async () => { stPoll = null; await loadAll(); if (S.view === "statements") render(); renderNav(); pollStatements(); }, 5000);
 }
 function parseCSV(text) {
   const rows = []; let row = [], cell = "", q = false;
@@ -1117,7 +1146,15 @@ const money2 = (s) => { const t = String(s || "").replace(/[$,\s]/g, ""); if (!t
 async function importStatement() {
   let cardId = $("#stCard").value; const file = $("#stFile").files[0];
   if (!cardId) return toast("Pick the card first");
-  if (!file) return toast("Choose the CSV file");
+  if (!file) return toast("Choose the statement file");
+  if (/\.pdf$/i.test(file.name) || file.type === "application/pdf") {
+    const path = `${S.ws}/statements/${uuid()}.pdf`;
+    const up = await sb.storage.from("receipts").upload(path, file, { contentType: "application/pdf" });
+    if (up.error) return toast("Upload failed: " + up.error.message);
+    const { data: imp, error } = await sb.from("statement_imports").insert({ file_name: file.name, payment_method_id: cardId, storage_path: path, status: "reading" }).select().single();
+    if (error) return toast(error.message);
+    await checkStatement(imp.id); return;
+  }
   const rows = parseCSV(await file.text());
   const hi = rows.findIndex((r) => r.some((c) => /date/i.test(c)));
   if (hi < 0) return toast("Couldn't find a header row with a Date column");
@@ -1134,7 +1171,7 @@ async function importStatement() {
   }).filter((x) => x.date && x.amount != null);
   if (ai >= 0) { const neg = parsed.filter((x) => x.amount < 0).length; if (neg > parsed.length / 2) parsed = parsed.map((x) => ({ ...x, amount: -x.amount })); }
   if (!parsed.length) return toast("No transactions found in that file");
-  const { data: imp, error } = await sb.from("statement_imports").insert({ file_name: file.name, payment_method_id: cardId }).select().single();
+  const { data: imp, error } = await sb.from("statement_imports").insert({ file_name: file.name, payment_method_id: cardId, status: "reading" }).select().single();
   if (error) return toast(error.message);
   const recs = parsed.map((x) => {
     const pay = x.amount <= 0 || /payment|autopay|thank you|online transfer|balance transfer/i.test(x.description);
@@ -1144,8 +1181,14 @@ async function importStatement() {
   const have = new Set(S.lines.filter((l) => l.payment_method_id === cardId).map((l) => `${l.date}|${l.amount}|${l.description}`));
   const fresh = recs.filter((r) => !have.has(`${r.date}|${r.amount}|${r.description}`));
   for (let i = 0; i < fresh.length; i += 500) { const { error: e2 } = await sb.from("statement_lines").insert(fresh.slice(i, i + 500)); if (e2) return toast(e2.message); }
-  await loadAll(); const n = await runMatching(true); render();
-  toast(`Imported ${fresh.length} charges${recs.length - fresh.length ? ` (${recs.length - fresh.length} already there)` : ""} · ${n} matched`);
+  toast(`${fresh.length} charges in${recs.length - fresh.length ? ` (${recs.length - fresh.length} already there)` : ""}. Checking them now…`);
+  await checkStatement(imp.id);
+}
+async function checkStatement(id) {
+  try { await api("statement", { import_id: id }); }
+  catch (e) { await sb.from("statement_imports").update({ status: "error", error: e.message }).eq("id", id); toast(e.message); }
+  const f = $("#stFile"); if (f) f.value = "";
+  await loadAll(); render(); pollStatements();
 }
 async function runMatching(quiet) {
   if (!S.owner || !S.lines.length) return 0;
@@ -1183,7 +1226,25 @@ function viewMore() {
 function viewSettings() {
   const biz = S.settings.business || {}, ai = S.settings.ai || {}, intake = S.settings.intake || {};
   const emailHook = `${API}/inbound-email?token=${intake.token || ""}`, smsHook = `${API}/inbound-sms?token=${intake.token || ""}`;
+  const mine = `<div class="card pad stack"><h3>Email receipts in</h3>
+    <p class="small muted" style="margin:0">Send or forward receipts, invoices and bills to this address. Make it the billing email at the services you pay for and bills arrive on their own.</p>
+    <div class="code" style="font-size:15px">${esc(intake.address || "")}</div>
+    <label class="f"><span>Trusted senders (your own email addresses, comma separated)</span><input class="in" id="inEmails" value="${esc((intake.allowed_emails || []).join(", "))}"></label>
+    <p class="tiny muted" style="margin:0">Mail from trusted senders files itself when the reader is sure. Anyone else waits in your Inbox until you file one from them.</p>
+    <label class="f"><span>Your mobile number (for texting receipt photos)</span><input class="in" id="inPhones" value="${esc((intake.allowed_phones || []).join(", "))}"></label>
+    <div><button class="btn primary" data-act="saveintake2">Save</button></div></div>`;
+  if (!S.admin) return `<div class="page-head"><div><h2>Settings</h2></div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">${mine}
+  <div class="card pad stack"><h3>Business</h3>
+    <label class="f"><span>Legal name</span><input class="in" id="bizName" value="${esc(biz.name || "")}"></label>
+    <div class="fgrid"><label class="f"><span>Tax form</span><input class="in" id="bizForm" value="${esc(biz.tax_form || "Schedule C")}"></label><label class="f"><span>Books start</span><input class="in" type="date" id="bizStart" value="${esc(biz.start_date || "")}"></label></div>
+    <label class="f"><span>IRS mileage rates (from date = cents per mile, one per line)</span><textarea class="in" id="rates" style="font-family:var(--mono);font-size:13px">${esc((S.settings.mileage_rates || []).map((r) => `${r.from} = ${(r.rate * 100).toFixed(1)}`).join("\n"))}</textarea></label>
+    <div><button class="btn primary" data-act="savebiz">Save</button></div></div>
+  </div>` + settingsLists();
   return `<div class="page-head"><div><h2>Settings</h2></div></div>
+  <div class="section-title"><h3>Workspaces</h3><span class="small muted">Only you see this</span></div>
+  <div class="card pad stack" id="wsAdmin"><div class="spin"></div></div>
+  <div class="section-title"><h3>This workspace</h3></div>
   <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
   <div class="card pad stack"><h3>Receipt reader</h3>
     <p class="small muted">Reads receipts with Claude using your Anthropic API key. The key is stored encrypted in the database vault and never sent to the browser.</p>
@@ -1218,8 +1279,10 @@ function viewSettings() {
     <div class="fgrid"><label class="f"><span>Tax form</span><input class="in" id="bizForm" value="${esc(biz.tax_form || "Schedule C")}"></label><label class="f"><span>Books start</span><input class="in" type="date" id="bizStart" value="${esc(biz.start_date || "")}"></label></div>
     <label class="f"><span>IRS mileage rates (from date = cents per mile, one per line)</span><textarea class="in" id="rates" style="font-family:var(--mono);font-size:13px">${esc((S.settings.mileage_rates || []).map((r) => `${r.from} = ${(r.rate * 100).toFixed(1)}`).join("\n"))}</textarea></label>
     <div><button class="btn primary" data-act="savebiz">Save</button></div></div>
-  </div>
-
+  </div>` + settingsLists();
+}
+function settingsLists() {
+  return `
   <div class="section-title"><h3>Accountant access</h3></div>
   <div class="card pad stack" id="members"><div class="spin"></div></div>
 
@@ -1247,6 +1310,36 @@ async function wireSettings() {
   ph("#akey", data?.anthropic_api_key); ph("#rsKey", data?.resend); ph("#twTok", data?.twilio);
   const rs = $("#rsStatus"); if (rs) { rs.className = "chip " + (data?.resend ? "ok" : ""); rs.textContent = data?.resend ? "Resend key saved" : "Not connected"; }
   renderMembers();
+  if (S.admin) renderWsAdmin();
+}
+async function renderWsAdmin() {
+  const el = $("#wsAdmin"); if (!el) return;
+  let list = [];
+  try { list = (await api("workspaces", { action: "list" })).workspaces; } catch (e) { el.innerHTML = `<p class="small" style="color:var(--bad)">${esc(e.message)}</p>`; return; }
+  el.innerHTML = `<p class="small muted" style="margin:0">Each workspace is a separate set of books. Its people see only their own. AI costs are on your account.</p>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Books</th><th>Owner</th><th>Receipts address</th><th class="r">Expenses</th><th class="r">AI, last 30 days</th></tr></thead><tbody>
+    ${list.map((w) => { const o = w.members.find((m) => m.role === "owner"); return `<tr><td><b>${esc(w.name)}</b></td><td class="small">${esc(o?.name || o?.email || "")}</td><td class="small num">${esc(w.receipts_address || "")}</td><td class="r num">${w.expenses}</td><td class="r num">${money(w.ai_30d.est_usd)} <span class="tiny muted">${w.ai_30d.calls} reads</span></td></tr>`; }).join("")}
+    </tbody></table></div>
+    <details><summary class="small" style="cursor:pointer;font-weight:600">New workspace</summary>
+    <form id="wsForm" class="stack" style="margin-top:10px">
+      <div class="fgrid"><label class="f"><span>Business name</span><input class="in" name="name" required placeholder="e.g. Ryan's consulting LLC"></label>
+      <label class="f"><span>Short name (becomes the receipts address)</span><input class="in" name="slug" required pattern="[a-zA-Z0-9]+" placeholder="ryan"></label>
+      <label class="f"><span>Owner's name</span><input class="in" name="owner_name"></label>
+      <label class="f"><span>Owner's email (their login)</span><input class="in" name="owner_email" type="email" required></label>
+      <label class="f"><span>Temporary password</span><input class="in" name="password" minlength="10" value="${genPw()}"></label>
+      <label class="f"><span>Owner's mobile (optional, for texting receipts)</span><input class="in" name="phone"></label></div>
+      <div><button class="btn primary">${IC.plus} Create workspace</button></div>
+      <p class="small" id="wsOut"></p>
+    </form></details>`;
+  $("#wsForm").onsubmit = async (ev) => {
+    ev.preventDefault(); const b = ev.target.querySelector("button"); b.disabled = true;
+    const f = Object.fromEntries(new FormData(ev.target));
+    try {
+      const w = (await api("workspaces", { action: "create", ...f })).workspace;
+      $("#wsOut").innerHTML = `Created <b>${esc(w.name)}</b>. Send them: the site link, their email, ${w.new_login ? `this password (<span class="num">${esc(f.password)}</span>)` : "their existing password"}, and their receipts address <b class="num">${esc(w.receipts_address)}</b>.`;
+      setTimeout(renderWsAdmin, 400);
+    } catch (e) { $("#wsOut").textContent = e.message; } finally { b.disabled = false; }
+  };
 }
 async function renderMembers() {
   const { data } = await sb.from("members").select("*").order("created_at"); S.members = data || [];
@@ -1258,7 +1351,7 @@ async function renderMembers() {
   $("#cpaForm").onsubmit = async (ev) => { ev.preventDefault(); try { await api("members", { action: "create", ...Object.fromEntries(new FormData(ev.target)) }); toast("Access created"); renderMembers(); } catch (e) { toast(e.message); } };
 }
 function genPw() { const a = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; return [...crypto.getRandomValues(new Uint8Array(14))].map((b) => a[b % a.length]).join(""); }
-async function saveSetting(key, value) { const { error } = await sb.from("settings").upsert({ key, value }); if (error) throw error; S.settings[key] = value; }
+async function saveSetting(key, value) { const { error } = await sb.from("settings").upsert({ workspace_id: S.ws, key, value }, { onConflict: "workspace_id,key" }); if (error) throw error; S.settings[key] = value; }
 
 /* ========= actions ========= */
 async function updateExp(id, patch) { const { error } = await sb.from("expenses").update(patch).eq("id", id); if (error) throw error; Object.assign(expById(id) || {}, patch); }
@@ -1315,7 +1408,7 @@ document.addEventListener("click", async (ev) => {
         const form = $("#manForm"); if (!form.reportValidity()) break; const f = Object.fromEntries(new FormData(form));
         const { data, error } = await sb.from("expenses").insert({ vendor: f.vendor, date: f.date, total: num(f.total), category_id: f.category_id, product_id: f.product_id || null, payment_method_id: f.payment_method_id || null, business_purpose: f.business_purpose || null, no_receipt: true, status: "filed", ai_flags: [] }).select().single();
         if (error) throw error;
-        if (form.dataset.line) await sb.from("statement_lines").update({ matched_expense_id: data.id }).eq("id", form.dataset.line);
+        if (form.dataset.line) await sb.from("statement_lines").update({ matched_expense_id: data.id, ignored: false, ignore_reason: null }).eq("id", form.dataset.line);
         closeModal(); await loadAll(); render(); toast("Added");
       } break;
       case "csv": { const rows = filteredExpenses(); download(new Blob([csvOf(exportRows(rows))], { type: "text/csv" }), `JSH-expenses-${S.year}.csv`); } break;
@@ -1329,6 +1422,7 @@ document.addEventListener("click", async (ev) => {
       } break;
       case "delmile": if (!confirm("Delete this trip?")) break; await sb.from("mileage").delete().eq("id", id); await loadAll(); render(); break;
       case "stimport": a.disabled = true; await importStatement(); a.disabled = false; break;
+      case "stretry": await checkStatement(id); break;
       case "rematch": { const n = await runMatching(); await loadAll(); render(); } break;
       case "lineadd": {
         const l = S.lines.find((x) => x.id === id); const gs = guessFromHistory(l.description);
@@ -1342,6 +1436,7 @@ document.addEventListener("click", async (ev) => {
         await saveSetting("ai", { ...(S.settings.ai || {}), model: $("#aiModel").value.trim() || "claude-sonnet-5-5", auto_file_confidence: +$("#aiConf").value || 0.9 });
         toast("Saved"); wireSettings();
       } break;
+      case "saveintake2": await saveSetting("intake", { ...(S.settings.intake || {}), allowed_emails: $("#inEmails").value.split(/[,\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean), allowed_phones: $("#inPhones").value.split(/[,]+/).map((s) => s.trim()).filter(Boolean) }); toast("Saved"); break;
       case "saveintake": { const rk = $("#rsKey").value.trim(); if (rk) { const { error } = await sb.rpc("set_secret", { p_name: "resend_api_key", p_value: rk }); if (error) throw error; $("#rsKey").value = ""; } } await saveSetting("intake", { ...(S.settings.intake || {}), address: $("#inAddr").value.trim(), resend_address: $("#inRsAddr").value.trim(), allowed_emails: $("#inEmails").value.split(/[,\s]+/).map((s) => s.trim().toLowerCase()).filter(Boolean) }); toast("Saved"); wireSettings(); break;
       case "savetwilio": {
         const sid = $("#twSid").value.trim(), tok = $("#twTok").value.trim();
