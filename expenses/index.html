@@ -446,6 +446,14 @@ async function api(path, body) {
   if (!res.ok || j.error) throw new Error(j.error || ("Request failed (" + res.status + ")"));
   return j;
 }
+// call another edge function (same project) as the signed-in user
+async function fnCall(name, body) {
+  let session = null; try { session = (await withTimeout(sb.auth.getSession(), 5000, "t")).data.session; } catch {}
+  const res = await fetch(SB_URL + "/functions/v1/" + name, { method: "POST", headers: { "Content-Type": "application/json", apikey: SB_KEY, Authorization: "Bearer " + (session?.access_token || SB_KEY) }, body: JSON.stringify(body) });
+  let j = {}; try { j = await res.json(); } catch {}
+  if (!res.ok || j.error) throw new Error(j.error || ("Request failed (" + res.status + ")"));
+  return j;
+}
 async function signedUrl(path) {
   if (!path) return null;
   const c = S.urls.get(path); if (c && c.exp > Date.now()) return c.url;
@@ -1582,6 +1590,8 @@ async function renderWsAdmin() {
       <label class="f"><span>Owner's email (their login)</span><input class="in" name="owner_email" type="email" required></label>
       <label class="f"><span>Temporary password</span><input class="in" name="password" minlength="10" value="${genPw()}"></label>
       <label class="f"><span>Owner's mobile (optional, for texting receipts)</span><input class="in" name="phone"></label></div>
+      <label class="check" style="display:flex;gap:8px;font-size:14px"><input type="checkbox" name="welcome" checked><span>Email them a welcome with their login details</span></label>
+      <label class="f"><span>Personal note in the email (optional)</span><input class="in" name="note" placeholder="e.g. Here's the expense app I told you about."></label>
       <div><button class="btn primary">${IC.plus} Create workspace</button></div>
       <p class="small" id="wsOut"></p>
     </form></details>`;
@@ -1590,7 +1600,12 @@ async function renderWsAdmin() {
     const f = Object.fromEntries(new FormData(ev.target));
     try {
       const w = (await api("workspaces", { action: "create", ...f })).workspace;
-      $("#wsOut").innerHTML = `Created <b>${esc(w.name)}</b>. Send them: the site link, their email, ${w.new_login ? `this password (<span class="num">${esc(f.password)}</span>)` : "their existing password"}, and their receipts address <b class="num">${esc(w.receipts_address)}</b>.`;
+      let sent = "";
+      if (f.welcome) {
+        try { const r = await fnCall("welcome", { workspace_id: w.id, password: w.new_login ? f.password : "", note: f.note || "" }); sent = `Welcome email sent to <b>${esc(r.sent_to)}</b>. `; }
+        catch (e) { sent = `<span style="color:var(--bad)">The welcome email didn't send (${esc(e.message)}).</span> `; }
+      }
+      $("#wsOut").innerHTML = `Created <b>${esc(w.name)}</b>. ${sent}Login: their email, ${w.new_login ? `password <span class="num">${esc(f.password)}</span>` : "their existing password"}. Receipts address <b class="num">${esc(w.receipts_address)}</b>.`;
       setTimeout(renderWsAdmin, 400);
     } catch (e) { $("#wsOut").textContent = e.message; } finally { b.disabled = false; }
   };
