@@ -162,6 +162,43 @@ textarea.in{min-height:70px;resize:vertical}
 .cap-btn b{font-size:17px}
 .cap-btn span{font-size:13px;opacity:.8}
 .cap-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+/* Tax Buddy */
+.tb-verdict{display:grid;grid-template-columns:1.25fr 1fr 1fr;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
+.tb-verdict>div{padding:18px 20px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.tb-verdict>div+div{border-left:1px solid var(--line)}
+.tb-verdict .lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.tb-big{font-size:42px;font-weight:700;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.tb-mid{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.tb-rate{background:var(--accent-soft)} .tb-rate .tb-big{color:var(--accent)}
+.tb-owe .tb-mid{color:var(--warn)}
+.tb-cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.tb-person{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px}
+.tb-person-hd{display:flex;align-items:center;gap:8px}.tb-person-hd .in{font-weight:600;max-width:200px}
+.tb-lines .line{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.tb-lines .line:last-child{border-bottom:0}.tb-lines .total{border-top:1px solid var(--ink-3);border-bottom:0;margin-top:4px;padding-top:10px;font-weight:700}
+.tb-seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tb-seg button{flex:1;font:inherit;font-size:14px;font-weight:600;border:0;background:var(--surface);color:var(--ink-2);padding:8px;cursor:pointer}
+.tb-seg button.on{background:var(--accent);color:#fff}
+.tb-ladder{display:flex;flex-direction:column;gap:6px}
+.tb-rung{display:grid;grid-template-columns:52px minmax(0,1fr) minmax(0,270px);gap:12px;align-items:center;padding:6px 8px;border-radius:10px}
+.tb-rung.cur{background:var(--surface-2);outline:1px solid var(--line)}
+.tb-rung .rt{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.tb-rung .rg{font-size:12.5px;color:var(--ink-3);font-family:var(--mono)}
+.tb-bar{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden;display:flex;border:1px solid var(--line)}
+.tb-bar .w{background:var(--ink-3)} .tb-bar .c{background:var(--accent)}
+.tb-key{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
+.tb-key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tb-blist .row{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 1.2fr auto;gap:8px;align-items:center;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.tb-add{display:grid;grid-template-columns:140px minmax(0,1fr) 130px auto;gap:8px}
+.tb-bonus{display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,1fr) auto;gap:6px}
+.pill{display:inline-flex;align-items:center;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;width:max-content}
+.pill.good{background:var(--accent-soft);color:var(--accent)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.due{background:var(--surface-2);color:var(--ink-2)}
+@media (max-width:900px){.tb-cols{grid-template-columns:minmax(0,1fr)}}
+.tb-3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.tb-sub-date{display:none}
+@media (max-width:720px){.tb-3{grid-template-columns:1fr!important}.tb-hide-sm{display:none}.tb-sub-date{display:block}#tbRows td,#tbRows+thead th{padding-left:8px;padding-right:8px}}
+@media (max-width:720px){.tb-verdict{grid-template-columns:1fr}.tb-verdict>div+div{border-left:0;border-top:1px solid var(--line)}.tb-big{font-size:36px}
+  .tb-rung{grid-template-columns:44px minmax(0,1fr)}.tb-rung .rg{grid-column:2}.tb-add{grid-template-columns:1fr 1fr}.tb-add .payer{grid-column:1/-1;order:-1}.tb-bonus{grid-template-columns:1fr 1fr}}
 .ws-sel{font:inherit;font-size:12px;color:inherit;background:transparent;border:0;padding:0;max-width:210px;cursor:pointer}
 .cap-wide{grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;font:inherit;color:inherit}
 .cap-wide div{display:flex;flex-direction:column;gap:2px}
@@ -324,6 +361,7 @@ function loadScript(src) { return new Promise((res, rej) => { if ($(`script[src=
 const LIBS = { xlsx: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js", zip: "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" };
 
 const IC = {
+  buddy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-5h6v5"/><path d="M12 9.5v2.2M10.9 10.6h2.2"/></svg>',
   people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/></svg>',
   inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
   camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
@@ -376,7 +414,7 @@ async function fetchAll(build) {
   return out;
 }
 async function loadAll() {
-  const [cats, prods, cards, settings, expenses, receipts, mileage, lines, imports] = await Promise.all([
+  const [cats, prods, cards, settings, expenses, receipts, mileage, lines, imports, income] = await Promise.all([
     sb.from("categories").select("*").order("sort"),
     sb.from("products").select("*").order("sort"),
     sb.from("payment_methods").select("*").order("label"),
@@ -386,11 +424,12 @@ async function loadAll() {
     fetchAll(() => sb.from("mileage").select("*").order("date", { ascending: false })),
     fetchAll(() => sb.from("statement_lines").select("*").order("date", { ascending: false })),
     sb.from("statement_imports").select("*").order("created_at", { ascending: false }),
+    fetchAll(() => sb.from("income").select("*").order("date", { ascending: false })),
   ]);
   for (const r of [cats, prods, cards, settings, imports]) if (r.error) throw r.error;
   S.cats = cats.data; S.prods = prods.data; S.cards = cards.data; S.imports = imports.data;
   S.settings = Object.fromEntries(settings.data.map((s) => [s.key, s.value]));
-  S.expenses = expenses; S.receipts = receipts; S.mileage = mileage; S.lines = lines;
+  S.expenses = expenses; S.receipts = receipts; S.mileage = mileage; S.lines = lines; S.income = income;
   buildYearSel();
 }
 let reloadT = null;
@@ -435,7 +474,7 @@ async function boot() {
   const me = wss.find((w) => w.id === S.ws) || wss[0];
   S.me = me; S.owner = me.role === "owner";
   renderWho();
-  S.view = S.owner ? (location.hash.slice(1) || "inbox") : (["reports","expenses","mileage","more","statements"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "reports");
+  S.view = S.owner ? (location.hash.slice(1) || "inbox") : (["reports","expenses","mileage","more","statements","taxes"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "reports");
   await loadAll();
   $("#nav").classList.remove("hide"); $("#yearSel").classList.remove("hide");
   render();
@@ -502,8 +541,8 @@ function inboxCount() { return S.expenses.filter((e) => e.status === "review").l
 function renderNav() {
   const n = inboxCount();
   const items = S.owner
-    ? [["inbox", "Inbox", IC.inbox, n], ["capture", "Add", IC.camera, 0, true], ["expenses", "Expenses", IC.list], ["reports", "Reports", IC.chart], ["more", "More", IC.more]]
-    : [["reports", "Reports", IC.chart], ["expenses", "Expenses", IC.list], ["mileage", "Mileage", IC.car], ["more", "More", IC.more]];
+    ? [["inbox", "Inbox", IC.inbox, n], ["capture", "Add", IC.camera, 0, true], ["expenses", "Expenses", IC.list], ["reports", "Reports", IC.chart], ["taxes", "Tax Buddy", IC.buddy], ["more", "More", IC.more]]
+    : [["reports", "Reports", IC.chart], ["expenses", "Expenses", IC.list], ["taxes", "Tax Buddy", IC.buddy], ["mileage", "Mileage", IC.car], ["more", "More", IC.more]];
   const sub = ["mileage", "statements", "settings"];
   $("#nav").innerHTML = items.map(([v, l, ic, badge, cap]) => {
     const on = S.view === v || (v === "more" && sub.includes(S.view) && S.owner);
@@ -514,12 +553,13 @@ function go(v) { S.view = v; history.replaceState(null, "", "#" + v); render(); 
 function render() {
   if (!S.owner && ["inbox", "capture", "settings"].includes(S.view)) S.view = "reports";
   renderNav();
-  const V = { inbox: viewInbox, capture: viewCapture, expenses: viewExpenses, reports: viewReports, more: viewMore, mileage: viewMileage, statements: viewStatements, settings: viewSettings }[S.view] || viewReports;
+  const V = { inbox: viewInbox, capture: viewCapture, expenses: viewExpenses, reports: viewReports, more: viewMore, mileage: viewMileage, statements: viewStatements, settings: viewSettings, taxes: viewTaxes }[S.view] || viewReports;
   $("#main").innerHTML = V();
   hydrateThumbs($("#main"));
   if (S.view === "capture") wireCapture();
   if (S.view === "settings") wireSettings();
   if (S.view === "statements") pollStatements();
+  if (S.view === "taxes") wireTaxes();
 }
 
 /* ========= shared selects ========= */
@@ -1216,6 +1256,220 @@ function guessFromHistory(desc) {
 }
 function cleanDesc(d) { return String(d || "").replace(/\s{2,}.*$/, "").replace(/[*#]\S*/g, "").replace(/\b\d{5,}\b/g, "").replace(/\s+/g, " ").trim().replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\B\w+/g, (w) => w.toLowerCase()); }
 
+
+/* ========= TAX BUDDY ========= */
+// 2026 federal figures (IRS inflation adjustments; SSA wage base; IRS underpayment rate)
+const TX = {
+  year: 2026,
+  std: { single: 16100, mfj: 32200 },
+  br: {
+    single: [[12400, .10], [50400, .12], [105700, .22], [201775, .24], [256225, .32], [640600, .35], [Infinity, .37]],
+    mfj: [[24800, .10], [100800, .12], [211400, .22], [403550, .24], [512450, .32], [768700, .35], [Infinity, .37]],
+  },
+  ssBase: 184500, addMed: { single: 200000, mfj: 250000 }, qbiThr: { single: 201775, mfj: 403550 }, qbiRange: { single: 75000, mfj: 150000 }, penaltyRate: 0.07,
+};
+const QTRS = [["-04-15", "Jan–Mar", 0], ["-06-15", "Apr–May", 0], ["-09-15", "Jun–Aug", 0], ["-01-15", "Sep–Dec", 1]];
+function bracketTax(ti, fs) { let t = 0, lo = 0; for (const [hi, r] of TX.br[fs]) { if (ti > lo) t += (Math.min(ti, hi) - lo) * r; lo = hi; } return Math.max(0, t); }
+function topRate(ti, fs) { for (const [hi, r] of TX.br[fs]) if (ti <= hi) return r; return .37; }
+function taxCalc(p) {
+  const fs = p.fs, wages = p.salary + (fs === "mfj" ? p.spouse : 0), P = Math.max(0, p.profit);
+  const seBase = P * 0.9235, ssRoom = Math.max(0, TX.ssBase - p.salary);
+  const se = 0.124 * Math.min(seBase, ssRoom) + 0.029 * seBase, halfSE = se / 2, thr = TX.addMed[fs];
+  const addMed = 0.009 * (Math.max(0, wages + seBase - thr) - Math.max(0, wages - thr));
+  const preQbi = Math.max(0, wages + P - halfSE - TX.std[fs]);
+  let qbi = 0.2 * Math.max(0, P - halfSE);
+  if (p.sstb) { const over = preQbi - TX.qbiThr[fs]; if (over > 0) qbi *= Math.max(0, 1 - over / TX.qbiRange[fs]); }
+  qbi = Math.min(qbi, 0.2 * preQbi);
+  const taxable = Math.max(0, preQbi - qbi), incomeTax = bracketTax(taxable, fs);
+  const sideIncomeTax = incomeTax - bracketTax(Math.max(0, wages - TX.std[fs]), fs);
+  const state = P * (p.stateRate || 0) / 100, sideTotal = sideIncomeTax + se + addMed + state, fedTotal = incomeTax + se + addMed;
+  return { P, se, addMed, qbi, taxable, incomeTax, sideIncomeTax, state, sideTotal, fedTotal, owed: fedTotal - p.withholding + state, top: topRate(taxable, fs) };
+}
+const TAX_DEFAULT = { fs: "mfj", nameA: "", nameB: "", aSalary: "", aWH: "", bSalary: "", bWH: "", bonuses: [], stateRate: 0, override: "", sstb: true, ret: 4.5, prior: "", priorAgi: "", mode: "april", paid: ["", "", "", ""] };
+const tbN = (v) => +v || 0;
+function tbState() { return { ...TAX_DEFAULT, ...(S.settings.tax || {}) }; }
+function tbCompute() {
+  const X = tbState(), Y = S.year, mfj = X.fs === "mfj";
+  const now = new Date(), start = new Date(Y + "-01-01T00:00:00"), end = new Date(Y + "-12-31T23:59:59");
+  const frac = now > end ? 1 : Math.min(1, Math.max(0.05, (now - start) / 864e5 / 365));
+  const inc = (S.income || []).filter((i) => yOf(i.date) === Y);
+  const rev = inc.reduce((t, i) => t + tbN(i.amount), 0);
+  const exps = S.expenses.filter((e) => e.status === "filed" && e.date && yOf(e.date) === Y);
+  const expDed = exps.reduce((t, e) => t + deductible(e), 0);
+  const miles = (S.mileage || []).filter((m) => yOf(m.date) === Y).reduce((t, m) => t + m.miles * mileageRate(m.date), 0);
+  const exp = expDed + miles;
+  const ovr = X.override !== "" && X.override != null && !isNaN(+X.override);
+  const projRev = rev / frac, projExp = exp / frac;
+  const projProfit = ovr ? +X.override : projRev - projExp;
+  const bonuses = mfj ? (X.bonuses || []).filter((b) => b.date && yOf(b.date) === Y) : [];
+  const bonusTot = bonuses.reduce((t, b) => t + tbN(b.amount), 0), bonusWH = bonuses.reduce((t, b) => t + tbN(b.wh), 0);
+  const withholding = tbN(X.aWH) + (mfj ? tbN(X.bWH) + bonusWH : 0);
+  const base = { fs: X.fs, salary: tbN(X.aSalary), spouse: mfj ? tbN(X.bSalary) + bonusTot : 0, withholding, stateRate: tbN(X.stateRate), sstb: !!X.sstb };
+  const t = taxCalc({ ...base, profit: projProfit }), t0 = taxCalc({ ...base, profit: 0 }), t1 = taxCalc({ ...base, profit: projProfit + 1000 });
+  const grossProj = ovr ? projProfit + projExp : projRev;
+  const rate = grossProj > 0 ? t.sideTotal / grossProj : 0;
+  const prior = tbN(X.prior), priorAgi = tbN(X.priorAgi), mult = priorAgi && priorAgi <= 150000 ? 1 : 1.1;
+  const priorTarget = prior > 0 ? prior * mult : null;
+  const required = priorTarget != null ? Math.min(0.9 * t.fedTotal, priorTarget) : 0.9 * t.fedTotal;
+  const due = QTRS.map(([md, , next]) => new Date((Y + next) + md + "T12:00:00")).concat([new Date((Y + 1) + "-04-15T12:00:00")]);
+  const pen = (paid) => { let p = 0, cum = 0; for (let q = 0; q < 4; q++) { cum += tbN(paid[q]); const un = Math.max(0, required * (q + 1) / 4 - withholding * (q + 1) / 4 - cum); p += un * TX.penaltyRate * Math.max(0, due[q + 1] - due[q]) / 864e5 / 365; } return p; };
+  const quarterly = X.mode === "quarterly", estPaid = (X.paid || []).reduce((s, v) => s + tbN(v), 0);
+  const r = tbN(X.ret) / 100, april = due[4], dd = (a, b) => Math.max(0, (b - a) / 864e5);
+  let earn = inc.reduce((s, i) => s + tbN(i.amount) * rate * r * dd(new Date(i.date + "T12:00:00"), april) / 365, 0);
+  const remaining = Math.max(0, grossProj - rev);
+  if (remaining > 0 && now < end) earn += remaining * rate * r * dd(new Date((Math.max(now, start) + +end) / 2), april) / 365;
+  return { X, Y, mfj, frac, inc, rev, exp, expDed, miles, projProfit, ovr, bonuses, bonusTot, bonusWH, withholding, t, t0, marginal: (t1.sideTotal - t.sideTotal) / 1000, rate, held: rev * rate,
+    prior, mult, priorTarget, required, due, penaltyNone: pen([0, 0, 0, 0]), penaltyQ: pen(X.paid || []), suggested: Math.max(0, (required - withholding) / 4), estPaid, quarterly, earn, owed: t.owed - (quarterly ? estPaid : 0), now };
+}
+function viewTaxes() {
+  const X = tbState(), ro = !S.owner ? "disabled" : "";
+  const fld = (id, label, hint = "", type = "number") => `<label class="f"><span>${label}</span><input class="in ${type === "number" ? "num" : ""}" id="tb_${id}" data-tb="${id}" type="${type}" ${type === "number" ? 'step="any" inputmode="decimal"' : ""} value="${esc(X[id] ?? "")}" ${ro}>${hint ? `<em class="tiny muted" style="font-style:normal">${hint}</em>` : ""}</label>`;
+  return `<div class="page-head"><div><h2>Tax Buddy</h2><p>What your 1099 income adds to the household tax bill, on top of salaries and bonuses. Log each check and see what to hold back.</p></div></div>
+  ${S.year !== TX.year ? `<div class="card pad small" style="margin-bottom:12px;border-color:var(--warn)">Tax figures are for ${TX.year}. Results for ${S.year} are a rough guide.</div>` : ""}
+  <section class="tb-verdict" style="margin-bottom:12px">
+    <div class="tb-rate"><span class="lbl">Set aside from every 1099 check</span><span class="tb-big" id="tbRate">–</span><span class="small" id="tbRateSub"></span></div>
+    <div class="tb-owe"><span class="lbl">Household may owe April 15, ${S.year + 1}</span><span class="tb-mid" id="tbOwe">–</span><span class="small muted" id="tbOweSub"></span></div>
+    <div><span class="lbl">Set aside so far</span><span class="tb-mid" id="tbHeld">–</span><span class="small muted" id="tbHeldSub"></span></div>
+  </section>
+  <div class="kpis" style="margin-bottom:16px">
+    <div class="card kpi"><div class="l">1099 income</div><div class="v num" id="tbRev">–</div><div class="s" id="tbRevN"></div></div>
+    <div class="card kpi"><div class="l">Deductible expenses</div><div class="v num" id="tbExp">–</div><div class="s" id="tbExpS"></div></div>
+    <div class="card kpi"><div class="l">Profit so far</div><div class="v num" id="tbProf">–</div><div class="s">year to date</div></div>
+    <div class="card kpi"><div class="l">Profit by Dec 31</div><div class="v num" id="tbProj">–</div><div class="s" id="tbProjS"></div></div>
+  </div>
+  <div class="tb-cols">
+    <section class="card">
+      <div class="row between" style="padding:14px 16px;border-bottom:1px solid var(--line)"><h3>1099 income · ${S.year}</h3><span class="small muted" id="tbIncTot"></span></div>
+      ${S.owner ? `<form class="tb-add" id="tbIncForm" style="padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)" autocomplete="off">
+        <input class="in" type="date" id="tbIDate" value="${todayISO()}" required aria-label="Date received">
+        <input class="in payer" id="tbIPayer" placeholder="Client / payer" required aria-label="Client">
+        <input class="in num" id="tbIAmt" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Amount" required aria-label="Amount">
+        <button class="btn primary">${IC.plus} Add</button></form>` : ""}
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th class="tb-hide-sm">Date</th><th>Client</th><th class="r">Amount</th><th class="r">Set aside</th>${S.owner ? "<th></th>" : ""}</tr></thead><tbody id="tbRows"></tbody></table></div>
+    </section>
+    <div class="stack" style="min-width:0">
+      <section class="card pad stack">
+        <h3>Household</h3>
+        <div class="f"><span>Filing status</span><div class="tb-seg" id="tbFs"><button type="button" data-v="mfj" ${ro}>Married, joint</button><button type="button" data-v="single" ${ro}>Single</button></div></div>
+        <div class="tb-person"><div class="tb-person-hd"><input class="in" id="tb_nameA" data-tb="nameA" placeholder="Your name" value="${esc(X.nameA || "")}" ${ro}><span class="tiny muted">salary + the 1099 income</span></div>
+          <div class="fgrid">${fld("aSalary", "Salary for the year")}${fld("aWH", "Federal tax withheld (year)", "From your paystubs, projected to Dec 31")}</div></div>
+        <div class="tb-person" id="tbPersonB"><div class="tb-person-hd"><input class="in" id="tb_nameB" data-tb="nameB" placeholder="Spouse's name" value="${esc(X.nameB || "")}" ${ro}><span class="tiny muted">salary + bonus checks</span></div>
+          <div class="fgrid">${fld("bSalary", "Salary for the year")}${fld("bWH", "Federal withheld from salary (year)")}</div>
+          <div class="f"><span>Bonus checks</span><div class="tb-blist" id="tbBonusList"></div>
+            ${S.owner ? `<form class="tb-bonus" id="tbBonusForm" autocomplete="off"><input class="in" type="date" id="tbBDate" value="${todayISO()}" required aria-label="Bonus date"><input class="in num" type="number" step="0.01" min="0" inputmode="decimal" id="tbBAmt" placeholder="Bonus" required aria-label="Bonus amount"><input class="in num" type="number" step="0.01" min="0" inputmode="decimal" id="tbBWH" placeholder="Withheld (22%)" aria-label="Federal withheld"><button class="btn">Add</button></form>
+            <span class="tiny muted">Employers withhold a flat 22% federal on bonuses. Add expected bonuses with a future date.</span>` : ""}</div></div>
+        <div class="tb-person"><div class="tb-person-hd"><b>${S.year - 1} return</b><span class="tiny muted">sets the no-penalty target</span></div>
+          <div class="fgrid">${fld("prior", "Total tax (line 24)")}${fld("priorAgi", "Adjusted gross income (line 11)", "Over $150,000 means the target is 110%")}</div></div>
+        <div class="fgrid">${fld("stateRate", "State income tax rate %", "0 for Tennessee, Florida and Texas")}${fld("override", "Expected 1099 profit by Dec 31", "Leave blank to project from the pace so far")}</div>
+        <label class="check" style="display:flex;gap:8px;font-size:13px;color:var(--ink-2)"><input type="checkbox" id="tb_sstb" ${X.sstb ? "checked" : ""} ${ro}><span>Health or consulting practice. Limits the 20% small-business deduction at higher incomes.</span></label>
+      </section>
+      <section class="card pad stack"><div class="row between"><h3>What the 1099 income adds</h3><span class="small muted">projected</span></div><div class="tb-lines" id="tbBreak"></div></section>
+    </div>
+  </div>
+  <section class="card pad stack" id="tbBrackets" style="margin-top:16px">
+    <div class="row between"><h3>Where you are in the brackets</h3><span class="small muted" id="tbBrFs"></span></div>
+    <div id="tbBrCallout"></div>
+    <div class="tb-key"><span><i style="background:var(--ink-3)"></i>Salaries and bonuses</span><span><i style="background:var(--accent)"></i>1099 profit on top</span></div>
+    <div class="tb-ladder" id="tbLadder"></div>
+  </section>
+  <section class="card pad stack" style="margin-top:16px">
+    <div class="row between wrap"><h3>When to pay the 1099 tax</h3><div class="tb-seg" id="tbMode" style="min-width:260px"><button type="button" data-v="april" ${ro}>Hold until April</button><button type="button" data-v="quarterly" ${ro}>Pay quarterly</button></div></div>
+    <div id="tbSafe"></div>
+    <div id="tbApril" class="stack">
+      <label class="small muted" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Return on the money you hold <input class="in num" id="tb_ret" data-tb="ret" type="number" step="0.1" style="width:80px" value="${esc(X.ret ?? "")}" ${ro}>%</label>
+      <div class="kpis tb-3">
+        <div class="card kpi" style="box-shadow:none;background:var(--surface-2)"><div class="l">It could earn</div><div class="v num" id="tbEarn" style="color:var(--accent)">–</div><div class="s">set-asides invested until Apr 15</div></div>
+        <div class="card kpi" style="box-shadow:none;background:var(--surface-2)"><div class="l">Late-payment penalty</div><div class="v num" id="tbPen" style="color:var(--warn)">–</div><div class="s">7% a year, from each quarterly date</div></div>
+        <div class="card kpi" style="box-shadow:none;background:var(--surface-2)"><div class="l">Net for paying in April</div><div class="v num" id="tbNet">–</div><div class="s" id="tbNetS"></div></div>
+      </div>
+    </div>
+    <div id="tbQ" class="stack hide">
+      <p class="small muted" style="margin:0">Suggested payments cover 25% of the year's no-penalty target, less what's withheld from paychecks. Enter what you paid at IRS Direct Pay.</p>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Due</th><th>For</th><th class="r">Suggested</th><th class="r">Paid</th><th></th></tr></thead><tbody id="tbQRows"></tbody></table></div>
+      <div class="kpis tb-3">
+        <div class="card kpi" style="box-shadow:none;background:var(--surface-2)"><div class="l">Paid so far</div><div class="v num" id="tbQPaid">–</div><div class="s">estimated payments</div></div>
+        <div class="card kpi" style="box-shadow:none;background:var(--surface-2)"><div class="l">Penalty with these payments</div><div class="v num" id="tbQPen" style="color:var(--warn)">–</div><div class="s">for any quarter paid short</div></div>
+        <div class="card kpi" style="box-shadow:none;background:var(--surface-2)"><div class="l">Left for April</div><div class="v num" id="tbQLeft">–</div><div class="s">after withholding and payments</div></div>
+      </div>
+    </div>
+    <p class="tiny muted" style="margin:0">A rough estimate, not tax advice. Uses ${TX.year} federal brackets, the standard deduction, the $184,500 Social Security cap and the 7% IRS penalty rate. Assumes no other income or credits, and state tax on the 1099 profit only. Expenses count at their deductible share (meals 50%, entertainment 0%), plus mileage.</p>
+  </section>`;
+}
+function tbUpdate() {
+  if (S.view !== "taxes" || !$("#tbRate")) return;
+  const c = tbCompute(), t = c.t, X = c.X, u = (n) => money(n, false), pct = (r) => (r * 100).toFixed(0) + "%";
+  $("#tbRate").textContent = pct(c.rate);
+  $("#tbRateSub").innerHTML = `Each extra $1,000 of 1099 profit adds about ${u(c.marginal * 1000)} (${pct(c.marginal)}). <a href="#" data-act="tbbr" style="color:var(--accent);font-weight:600">See brackets</a>`;
+  $("#tbOwe").textContent = u(Math.max(0, c.owed));
+  $("#tbOweSub").innerHTML = c.owed > 0 ? `${u(t.fedTotal)} federal tax, minus ${u(c.withholding)} withheld${c.quarterly && c.estPaid ? ` and ${u(c.estPaid)} paid` : ""}${t.state ? `, plus ${u(t.state)} state` : ""}` : `<span class="pill good">Already covered</span>`;
+  $("#tbHeld").textContent = u(c.held);
+  $("#tbHeldSub").textContent = `of ${u(t.sideTotal)} the 1099 income adds this year. Without it the household would owe ${u(Math.max(0, c.t0.owed))}.`;
+  $("#tbRev").textContent = u(c.rev); $("#tbRevN").textContent = `${c.inc.length} payment${c.inc.length === 1 ? "" : "s"}`;
+  $("#tbExp").textContent = u(c.exp); $("#tbExpS").textContent = c.miles ? `includes ${u(c.miles)} mileage` : "from your filed expenses";
+  $("#tbProf").textContent = u(c.rev - c.exp); $("#tbProj").textContent = u(c.projProfit);
+  $("#tbProjS").textContent = c.ovr ? "your estimate" : c.frac >= 1 ? "full year" : `at this pace (${Math.round(c.frac * 100)}% of year gone)`;
+  $("#tbIncTot").textContent = u(c.rev) + " total";
+  $("#tbRows").innerHTML = c.inc.length ? c.inc.map((i) => `<tr><td class="num small tb-hide-sm" style="white-space:nowrap">${fmtDate(i.date)}</td><td>${esc(i.payer || "")}<span class="tiny muted tb-sub-date">${fmtDate(i.date)}</span></td><td class="r num">${money(+i.amount)}</td><td class="r num" style="color:var(--accent);font-weight:600">${money(i.amount * c.rate)}</td>${S.owner ? `<td class="r"><button class="btn sm ghost" data-act="tbincdel" data-id="${i.id}" aria-label="Remove">${IC.x}</button></td>` : ""}</tr>`).join("")
+    : `<tr><td colspan="5" class="muted" style="padding:24px;text-align:center">No 1099 income logged for ${c.Y} yet. Add the first check above.</td></tr>`;
+  const bs = [...(X.bonuses || [])].sort((a, b) => (a.date > b.date ? 1 : -1));
+  $("#tbBonusList").innerHTML = bs.length ? bs.map((b) => `<div class="row"><span class="num">${fmtDate(b.date)}${new Date(b.date + "T12:00:00") > c.now ? ' <span class="chip">expected</span>' : ""}</span><span class="num">${u(tbN(b.amount))}</span><span class="num muted">${u(tbN(b.wh))} withheld</span>${S.owner ? `<button class="btn sm ghost" data-act="tbbdel" data-id="${b.id}" aria-label="Remove bonus">${IC.x}</button>` : "<span></span>"}</div>`).join("") + `<div class="row" style="font-weight:600;border-bottom:0"><span>Total</span><span class="num">${u(c.bonusTot)}</span><span class="num muted">${u(c.bonusWH)} withheld</span><span></span></div>` : `<div class="small muted">No bonuses yet.</div>`;
+  const L = (k, v, cls = "") => `<div class="line ${cls}"><span>${k}</span><span class="num">${v}</span></div>`;
+  $("#tbBreak").innerHTML = L("1099 profit", u(t.P)) + L("Self-employment tax (Social Security + Medicare)", u(t.se)) + (t.addMed > 0.5 ? L("Additional 0.9% Medicare", u(t.addMed)) : "") +
+    L(`Federal income tax on it (top bracket ${pct(t.top)})`, u(t.sideIncomeTax)) + (t.qbi > 0.5 ? L("…after the 20% small-business deduction of", u(t.qbi)) : L("20% small-business deduction", "phased out")) +
+    (t.state ? L("State income tax", u(t.state)) : "") + L("Tax the 1099 income adds", u(t.sideTotal), "total");
+  // brackets
+  const brs = TX.br[X.fs], tiAll = t.taxable, tiW = c.t0.taxable; let lo = 0, cur = brs.length - 1;
+  const rows = brs.map(([hi, rr], i) => { const span = hi === Infinity ? Math.max(250000, tiAll - lo) : hi - lo; const w = Math.max(0, Math.min(tiW, hi) - lo), a = Math.max(0, Math.min(tiAll, hi) - lo) - w; if (tiAll > lo && tiAll <= hi) cur = i; const o = { rr, lo, hi, w: w / span * 100, a: Math.max(0, a) / span * 100 }; lo = hi; return o; });
+  const cr = rows[cur], nx = rows[cur + 1], wb = rows.find((r) => tiW > r.lo && tiW <= r.hi) || rows[0];
+  $("#tbBrFs").textContent = (c.mfj ? "Married filing jointly" : "Single") + " · " + TX.year;
+  $("#tbBrCallout").innerHTML = `Taxable income about <b class="num">${u(tiAll)}</b>, in the <b>${pct(cr.rr)}</b> bracket. ` + (nx ? `<b class="num">${u(cr.hi - tiAll)}</b> more before the ${pct(nx.rr)} bracket starts. ` : "That's the top bracket. ") + (wb.rr !== cr.rr ? `The salaries alone sit in the ${pct(wb.rr)} bracket; the 1099 income pushes into ${pct(cr.rr)}.` : `The salaries alone already reach ${pct(cr.rr)}, so 1099 dollars are taxed there too.`);
+  $("#tbLadder").innerHTML = rows.map((r, i) => `<div class="tb-rung${i === cur ? " cur" : ""}"><span class="rt">${pct(r.rr)}</span><div class="tb-bar"><span class="w" style="width:${r.w}%"></span><span class="c" style="width:${r.a}%"></span></div><span class="rg">${r.hi === Infinity ? `over ${u(r.lo)}` : `${u(r.lo)} – ${u(r.hi)}`}${i === cur && r.hi !== Infinity ? ` · ${u(r.hi - tiAll)} left` : ""}</span></div>`).join("");
+  // when to pay
+  const covered = c.withholding + (c.quarterly ? c.estPaid : 0), gap = c.required - covered;
+  const how = c.priorTarget != null && c.priorTarget <= 0.9 * t.fedTotal ? `${c.mult > 1 ? "110%" : "100%"} of your ${c.Y - 1} tax of ${u(c.prior)}` : `90% of this year's projected federal tax`;
+  $("#tbSafe").innerHTML = `${gap <= 0.5 ? `<span class="pill good">No penalty</span>` : `<span class="pill warn">Short ${u(gap)}</span>`} No-penalty target: <b class="num">${u(c.required)}</b>, which is ${how}. ${c.quarterly ? "Withholding and payments cover" : "Withholding covers"} <b class="num">${u(covered)}</b>.${c.prior ? "" : ` <span class="muted">Add last year's return in Household. It usually lowers the target.</span>`}`;
+  $("#tbApril").classList.toggle("hide", c.quarterly); $("#tbQ").classList.toggle("hide", !c.quarterly);
+  $("#tbEarn").textContent = u(c.earn); $("#tbPen").textContent = u(c.penaltyNone);
+  const net = c.earn - c.penaltyNone; $("#tbNet").textContent = (net >= 0 ? "+" : "") + u(net); $("#tbNet").style.color = net >= 0 ? "var(--accent)" : "var(--warn)";
+  $("#tbNetS").textContent = net >= 0 ? "holding the money comes out ahead" : "paying quarterly would cost less";
+  if (!document.activeElement?.dataset?.q) $("#tbQRows").innerHTML = QTRS.map(([md, f, nxt], q) => { const d = c.due[q], paid = tbN((X.paid || [])[q]); const st = paid >= c.suggested - 0.5 && c.suggested > 0 ? `<span class="pill good">Paid</span>` : d < c.now ? (c.suggested > 0 ? `<span class="pill warn">Past due</span>` : "") : `<span class="pill due">Upcoming</span>`; return `<tr><td class="num small" style="white-space:nowrap">${d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td><td class="small">${f}</td><td class="r num">${u(c.suggested)}</td><td class="r"><input class="in num" style="max-width:130px;margin-left:auto;text-align:right" data-q="${q}" type="number" step="1" inputmode="decimal" placeholder="0" value="${esc((X.paid || [])[q] ?? "")}" ${S.owner ? "" : "disabled"} aria-label="Paid for ${f}"></td><td>${st}</td></tr>`; }).join("");
+  $("#tbQPaid").textContent = u(c.estPaid); $("#tbQPen").textContent = u(c.penaltyQ); $("#tbQLeft").textContent = u(Math.max(0, c.owed));
+  $$("#tbFs button").forEach((b) => b.classList.toggle("on", b.dataset.v === X.fs));
+  $$("#tbMode button").forEach((b) => b.classList.toggle("on", b.dataset.v === (X.mode || "april")));
+  $("#tbPersonB").classList.toggle("hide", !c.mfj);
+}
+let tbSaveT = null;
+function tbSet(patch, now = false) {
+  S.settings.tax = { ...tbState(), ...patch };
+  tbUpdate();
+  if (!S.owner) return;
+  clearTimeout(tbSaveT);
+  tbSaveT = setTimeout(() => saveSetting("tax", S.settings.tax).catch((e) => toast(e.message)), now ? 0 : 700);
+}
+function wireTaxes() {
+  tbUpdate();
+  if (!S.owner) return;
+  $$("[data-tb]").forEach((el) => el.addEventListener("input", () => tbSet({ [el.dataset.tb]: el.type === "number" ? (el.value === "" ? "" : +el.value) : el.value })));
+  $("#tb_sstb").addEventListener("change", (e) => tbSet({ sstb: e.target.checked }, true));
+  $("#tbFs").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) tbSet({ fs: b.dataset.v }, true); });
+  $("#tbMode").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) tbSet({ mode: b.dataset.v }, true); });
+  $("#tbQRows").addEventListener("change", (e) => { const i = e.target.closest("[data-q]"); if (!i) return; const paid = [...(tbState().paid || ["", "", "", ""])]; paid[+i.dataset.q] = i.value === "" ? "" : +i.value; tbSet({ paid }, true); });
+  $("#tbBAmt").addEventListener("input", () => { const v = +$("#tbBAmt").value; $("#tbBWH").placeholder = v ? "Withheld " + money(v * 0.22, false) : "Withheld (22%)"; });
+  $("#tbBonusForm").addEventListener("submit", (e) => {
+    e.preventDefault(); const amount = +$("#tbBAmt").value; if (!amount) return;
+    const wh = $("#tbBWH").value === "" ? Math.round(amount * 22) / 100 : +$("#tbBWH").value;
+    tbSet({ bonuses: [...(tbState().bonuses || []), { id: uuid(), date: $("#tbBDate").value, amount, wh }] }, true);
+    $("#tbBAmt").value = ""; $("#tbBWH").value = ""; $("#tbBWH").placeholder = "Withheld (22%)";
+  });
+  $("#tbIncForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); const amount = +$("#tbIAmt").value; if (!amount) return;
+    const { data, error } = await sb.from("income").insert({ date: $("#tbIDate").value, payer: $("#tbIPayer").value.trim() || null, amount }).select().single();
+    if (error) return toast(error.message);
+    S.income = [data, ...(S.income || [])].sort((a, b) => (a.date < b.date ? 1 : -1));
+    $("#tbIAmt").value = ""; $("#tbIPayer").value = ""; tbUpdate(); $("#tbIPayer").focus(); toast("Added");
+  });
+}
+
 /* ========= MORE ========= */
 function viewMore() {
   const items = S.owner ? [["mileage", IC.car, "Mileage", "Log business driving at the IRS rate"], ["statements", IC.card, "Card statements", "Import CSVs, find charges with no receipt"], ["settings", IC.gear, "Settings", "Email & text intake, categories, cards, CPA access"]] : [["mileage", IC.car, "Mileage", "Business driving log"], ["statements", IC.card, "Card statements", "Charges matched to receipts"]];
@@ -1377,6 +1631,9 @@ document.addEventListener("click", async (ev) => {
       case "signout": await sb.auth.signOut(); break;
       case "edit": openEditor(id); break;
       case "manual": openManual(); break;
+      case "tbbr": $("#tbBrackets")?.scrollIntoView({ behavior: "smooth" }); break;
+      case "tbbdel": tbSet({ bonuses: (tbState().bonuses || []).filter((b) => b.id !== id) }, true); break;
+      case "tbincdel": { const { error } = await sb.from("income").delete().eq("id", id); if (error) throw error; S.income = S.income.filter((i) => i.id !== id); tbUpdate(); toast("Removed"); } break;
       case "client": openClient(); break;
       case "cmkind": cmKind(a.dataset.k); break;
       case "cmsave": await cmSave(); break;
